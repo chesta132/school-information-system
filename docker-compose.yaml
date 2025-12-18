@@ -23,7 +23,7 @@ services:
       dockerfile: Dockerfile
     container_name: school-app
     ports:
-      - "8000:8000"
+      - "8080:8080"
     depends_on:
       school-db:
         condition: service_healthy
@@ -33,7 +33,7 @@ services:
       - DB_NAME=school_db
       - DB_PORT=5432
       - DB_HOST=school-db
-      - PORT=8000
+      - PORT=8080
     env_file:
       - .env
     volumes:
