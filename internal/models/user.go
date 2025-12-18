@@ -3,13 +3,13 @@ package models
 import "time"
 
 type User struct {
-	ID       string `gorm:"default:gen_random_uuid()" json:"id"`
-	FullName string `json:"full_name"`
-	Email    string `gorm:"uniqueIndex" json:"email"`       // auth username
-	Password string `json:"-"`                              // auth password
-	Role     string `gorm:"type:user_role" json:"role"`     // "student", "teacher", "admin"
-	Gender   string `gorm:"type:user_gender" json:"gender"` // "male", "female"
-	Contact  string `json:"contact"`                        // phone number
+	ID       string     `gorm:"default:gen_random_uuid()" json:"id"`
+	FullName string     `json:"full_name"`
+	Email    string     `gorm:"uniqueIndex" json:"email"`       // auth username
+	Password string     `json:"-"`                              // auth password
+	Role     UserRole   `gorm:"type:user_role" json:"role"`     // "student", "teacher", "admin"
+	Gender   UserGender `gorm:"type:user_gender" json:"gender"` // "male", "female"
+	Contact  string     `json:"contact"`                        // phone number
 
 	StudentProfile *Student `gorm:"foreignKey:UserID" json:"student_profile,omitempty"`
 	TeacherProfile *Teacher `gorm:"foreignKey:UserID" json:"teacher_profile,omitempty"`
@@ -59,11 +59,11 @@ type Admin struct {
 }
 
 type Parent struct {
-	ID       string `gorm:"default:gen_random_uuid()" json:"id"`
-	FullName string `json:"full_name"`
-	Contact  string `json:"contact"` // phone number
-	Email    string `gorm:"unique" json:"email"`
-	Gender   string `gorm:"type:user_gender" json:"gender"` // "male", "female"
+	ID       string     `gorm:"default:gen_random_uuid()" json:"id"`
+	FullName string     `json:"full_name"`
+	Contact  string     `json:"contact"` // phone number
+	Email    string     `gorm:"unique" json:"email"`
+	Gender   UserGender `gorm:"type:user_gender" json:"gender"` // "male", "female"
 
 	CreatedAt time.Time `gorm:"autoCreateTime" json:"created_at"`
 	UpdatedAt time.Time `gorm:"autoUpdateTime" json:"updated_at"`
