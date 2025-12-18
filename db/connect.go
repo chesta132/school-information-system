@@ -17,10 +17,6 @@ func Connect() *gorm.DB {
 		log.Fatal("school-app: failed to connect database", err.Error())
 	}
 
-	if err := CreateEnum(db, "user_role", []string{"student", "teacher", "admin"}); err != nil {
-		log.Fatal("school-app: failed to create user role enum", err.Error())
-	}
-
 	Migrate(db)
 
 	return db
