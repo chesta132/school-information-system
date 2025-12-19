@@ -8,6 +8,6 @@ type Class struct {
 	FormTeacherID string   `json:"-"`
 	FormTeacher   *Teacher `json:"form_teacher,omitempty"`
 
-	CreatedAt time.Time `gorm:"autoCreateTime" json:"created_at"`
-	UpdatedAt time.Time `gorm:"autoUpdateTime" json:"updated_at"`
+	CreatedAt time.Time `gorm:"autoCreateTime" json:"created_at,omitzero"`
+	UpdatedAt time.Time `gorm:"autoUpdateTime" json:"updated_at,omitzero"`
 }

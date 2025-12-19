@@ -11,12 +11,12 @@ type User struct {
 	Gender   UserGender `gorm:"type:user_gender" json:"gender"` // "male", "female"
 	Contact  string     `json:"contact"`                        // phone number
 
-	StudentProfile *Student `gorm:"foreignKey:UserID" json:"student_profile,omitempty"`
-	TeacherProfile *Teacher `gorm:"foreignKey:UserID" json:"teacher_profile,omitempty"`
-	AdminProfile   *Admin   `gorm:"foreignKey:UserID" json:"admin_profile,omitempty"`
+	StudentProfile *Student `gorm:"foreignKey:UserID;constraint:OnDelete:CASCADE" json:"student_profile,omitempty"`
+	TeacherProfile *Teacher `gorm:"foreignKey:UserID;constraint:OnDelete:CASCADE" json:"teacher_profile,omitempty"`
+	AdminProfile   *Admin   `gorm:"foreignKey:UserID;constraint:OnDelete:CASCADE" json:"admin_profile,omitempty"`
 
-	CreatedAt time.Time `gorm:"autoCreateTime" json:"created_at"`
-	UpdatedAt time.Time `gorm:"autoUpdateTime" json:"updated_at"`
+	CreatedAt time.Time `gorm:"autoCreateTime" json:"created_at,omitzero"`
+	UpdatedAt time.Time `gorm:"autoUpdateTime" json:"updated_at,omitzero"`
 }
 
 type Student struct {
@@ -28,8 +28,8 @@ type Student struct {
 
 	UserID string `gorm:"uniqueIndex;not null" json:"-"`
 
-	CreatedAt time.Time `gorm:"autoCreateTime" json:"created_at"`
-	UpdatedAt time.Time `gorm:"autoUpdateTime" json:"updated_at"`
+	CreatedAt time.Time `gorm:"autoCreateTime" json:"created_at,omitzero"`
+	UpdatedAt time.Time `gorm:"autoUpdateTime" json:"updated_at,omitzero"`
 }
 
 type Teacher struct {
@@ -41,8 +41,8 @@ type Teacher struct {
 	UserID string `gorm:"uniqueIndex;not null" json:"-"`
 
 	JoinedAt  time.Time `gorm:"not null" json:"joined_at"`
-	CreatedAt time.Time `gorm:"autoCreateTime" json:"created_at"`
-	UpdatedAt time.Time `gorm:"autoUpdateTime" json:"updated_at"`
+	CreatedAt time.Time `gorm:"autoCreateTime" json:"created_at,omitzero"`
+	UpdatedAt time.Time `gorm:"autoUpdateTime" json:"updated_at,omitzero"`
 }
 
 type Admin struct {
@@ -54,8 +54,8 @@ type Admin struct {
 	UserID string `gorm:"uniqueIndex;not null" json:"-"`
 
 	JoinedAt  time.Time `gorm:"not null" json:"joined_at"`
-	CreatedAt time.Time `gorm:"autoCreateTime" json:"created_at"`
-	UpdatedAt time.Time `gorm:"autoUpdateTime" json:"updated_at"`
+	CreatedAt time.Time `gorm:"autoCreateTime" json:"created_at,omitzero"`
+	UpdatedAt time.Time `gorm:"autoUpdateTime" json:"updated_at,omitzero"`
 }
 
 type Parent struct {
@@ -65,6 +65,6 @@ type Parent struct {
 	Email    string     `gorm:"unique" json:"email"`
 	Gender   UserGender `gorm:"type:user_gender" json:"gender"` // "male", "female"
 
-	CreatedAt time.Time `gorm:"autoCreateTime" json:"created_at"`
-	UpdatedAt time.Time `gorm:"autoUpdateTime" json:"updated_at"`
+	CreatedAt time.Time `gorm:"autoCreateTime" json:"created_at,omitzero"`
+	UpdatedAt time.Time `gorm:"autoUpdateTime" json:"updated_at,omitzero"`
 }
