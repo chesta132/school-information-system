@@ -15,6 +15,7 @@ type User struct {
 	TeacherProfile *Teacher `gorm:"foreignKey:UserID;constraint:OnDelete:CASCADE" json:"teacher_profile,omitempty"`
 	AdminProfile   *Admin   `gorm:"foreignKey:UserID;constraint:OnDelete:CASCADE" json:"admin_profile,omitempty"`
 
+	DeleteAt  time.Time `gorm:"default:null" json:"delete_at,omitzero"`
 	CreatedAt time.Time `gorm:"autoCreateTime" json:"created_at,omitzero"`
 	UpdatedAt time.Time `gorm:"autoUpdateTime" json:"updated_at,omitzero"`
 }
