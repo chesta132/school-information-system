@@ -12,10 +12,11 @@ type User struct {
 	create[models.User]
 	read[models.User]
 	update[models.User]
+	archivable[models.User]
 }
 
 func NewUser(db *gorm.DB) *User {
-	return &User{db, create[models.User]{db}, read[models.User]{db}, update[models.User]{db}}
+	return &User{db, create[models.User]{db}, read[models.User]{db}, update[models.User]{db}, archivable[models.User]{db}}
 }
 
 func (r *User) WithTx(tx *gorm.DB) *User {
@@ -30,7 +31,7 @@ func (r *User) DeleteUser(ctx context.Context, where any, args ...any) error {
 	// delete parents if there is no student related to parents
 	return r.db.Transaction(func(tx *gorm.DB) error {
 		// user.StudentProfile only have ID and UserID
-		user, err := gorm.G[models.User](tx).
+		user, err := gorm.G[models.User](tx.Unscoped()).
 			Preload("StudentProfile", func(db gorm.PreloadBuilder) error {
 				db.Select("id, user_id")
 				return nil
@@ -43,7 +44,7 @@ func (r *User) DeleteUser(ctx context.Context, where any, args ...any) error {
 		}
 
 		if user.Role != models.RoleStudent || user.StudentProfile == nil {
-			_, err := gorm.G[models.User](tx).Where(where, args...).Delete(ctx)
+			_, err := gorm.G[models.User](tx.Unscoped()).Where(where, args...).Delete(ctx)
 			return err
 		}
 
@@ -69,7 +70,7 @@ func (r *User) DeleteUser(ctx context.Context, where any, args ...any) error {
 			}
 		}
 
-		_, err = gorm.G[models.User](tx).Where(where, args...).Delete(ctx)
+		_, err = gorm.G[models.User](tx.Unscoped()).Where(where, args...).Delete(ctx)
 		return err
 	})
 }
@@ -78,7 +79,7 @@ func (r *User) DeleteAllUser(ctx context.Context, where any, args ...any) error 
 	// delete parents if there is no student related to parents
 	return r.db.Transaction(func(tx *gorm.DB) error {
 		// each user.StudentProfile only have ID and UserID
-		users, err := gorm.G[models.User](tx).
+		users, err := gorm.G[models.User](tx.Unscoped()).
 			Preload("StudentProfile", func(db gorm.PreloadBuilder) error {
 				db.Select("id, user_id")
 				return nil
@@ -126,7 +127,7 @@ func (r *User) DeleteAllUser(ctx context.Context, where any, args ...any) error 
 			}
 		}
 
-		_, err = gorm.G[models.User](tx).Where(where, args...).Delete(ctx)
+		_, err = gorm.G[models.User](tx.Unscoped()).Where(where, args...).Delete(ctx)
 		return err
 	})
 }

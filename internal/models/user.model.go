@@ -1,6 +1,10 @@
 package models
 
-import "time"
+import (
+	"time"
+
+	"gorm.io/gorm"
+)
 
 type User struct {
 	ID       string     `gorm:"default:gen_random_uuid()" json:"id"`
@@ -15,9 +19,9 @@ type User struct {
 	TeacherProfile *Teacher `gorm:"foreignKey:UserID;constraint:OnDelete:CASCADE" json:"teacher_profile,omitempty"`
 	AdminProfile   *Admin   `gorm:"foreignKey:UserID;constraint:OnDelete:CASCADE" json:"admin_profile,omitempty"`
 
-	DeleteAt  time.Time `gorm:"default:null" json:"delete_at,omitzero"`
-	CreatedAt time.Time `gorm:"autoCreateTime" json:"created_at,omitzero"`
-	UpdatedAt time.Time `gorm:"autoUpdateTime" json:"updated_at,omitzero"`
+	DeletedAt gorm.DeletedAt `gorm:"index" json:"archived_at,omitzero"`
+	CreatedAt time.Time      `gorm:"autoCreateTime" json:"created_at,omitzero"`
+	UpdatedAt time.Time      `gorm:"autoUpdateTime" json:"updated_at,omitzero"`
 }
 
 type Student struct {
