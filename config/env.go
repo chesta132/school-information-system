@@ -10,4 +10,7 @@ var (
 	DB_NAME     = os.Getenv("DB_NAME")
 	GO_ENV      = os.Getenv("GO_ENV")
 	SERVER_PORT = os.Getenv("PORT")
+
+	REFRESH_SECRET = os.Getenv("REFRESH_SECRET")
+	ACCESS_SECRET  = os.Getenv("ACCESS_SECRET")
 )
