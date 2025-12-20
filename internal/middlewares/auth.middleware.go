@@ -44,13 +44,12 @@ func (*Auth) Protected() gin.HandlerFunc {
 		}
 
 		// update access token
-		rememberMe := authlib.IsCookieRememberMe(*refreshCookie)
-		ac := authlib.CreateAccessCookie(refresh.UserID, refresh.Role, rememberMe)
+		ac := authlib.CreateAccessCookie(refresh.UserID, refresh.Role, refresh.RememberMe)
 		rp.SetCookies(ac)
 
 		// rotate refresh token
 		if refresh.RotateAt.Before(time.Now()) {
-			rc := authlib.CreateRefreshCookie(refresh.UserID, refresh.Role, rememberMe)
+			rc := authlib.CreateRefreshCookie(refresh.UserID, refresh.Role, refresh.RememberMe)
 			rp.SetCookies(rc)
 		}
 

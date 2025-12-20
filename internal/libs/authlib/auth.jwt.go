@@ -9,22 +9,34 @@ import (
 )
 
 type Claims struct {
-	UserID   string     `json:"user_id"`
-	Role     string     `json:"role"`
-	RotateAt *time.Time `json:"rotate_at"`
+	UserID     string     `json:"user_id"`
+	Role       string     `json:"role"`
+	RotateAt   *time.Time `json:"rotate_at"`
+	RememberMe bool       `json:"remember_me"`
 	jwt.RegisteredClaims
 }
 
-func createClaim(id, role string, expiresAt time.Duration, rotateAt *time.Duration) *jwt.Token {
+func createClaim(id, role string, rememberMe bool, expiresAt time.Duration, rotateAt *time.Duration) *jwt.Token {
 	var rotate *time.Time
+
 	if rotateAt != nil {
 		r := time.Now().Add(*rotateAt)
 		rotate = &r
+
+		if !rememberMe {
+			// max 1 day expiry for not remember me refresh token
+			maxSessionExpiry := time.Hour * 24
+			if expiresAt > maxSessionExpiry {
+				expiresAt = maxSessionExpiry
+			}
+		}
 	}
+
 	return jwt.NewWithClaims(config.SIGN_METHOD, Claims{
-		UserID:   id,
-		Role:     role,
-		RotateAt: rotate,
+		UserID:     id,
+		Role:       role,
+		RotateAt:   rotate,
+		RememberMe: rememberMe,
 		RegisteredClaims: jwt.RegisteredClaims{
 			Issuer:    config.APP_NAME,
 			IssuedAt:  jwt.NewNumericDate(time.Now()),
@@ -42,14 +54,14 @@ func createKeyFunc(secret string) jwt.Keyfunc {
 	}
 }
 
-func CreateRefreshToken(id, role string) string {
-	token := createClaim(id, role, config.REFRESH_TOKEN_EXPIRY, &config.ROTATE_REFRESH_TOKEN_AFTER)
+func CreateRefreshToken(id, role string, rememberMe bool) string {
+	token := createClaim(id, role, rememberMe, config.REFRESH_TOKEN_EXPIRY, &config.ROTATE_REFRESH_TOKEN_AFTER)
 	str, _ := token.SignedString([]byte(config.REFRESH_SECRET))
 	return str
 }
 
-func CreateAccessToken(id, role string) string {
-	token := createClaim(id, role, config.ACCESS_TOKEN_EXPIRY, nil)
+func CreateAccessToken(id, role string, rememberMe bool) string {
+	token := createClaim(id, role, rememberMe, config.ACCESS_TOKEN_EXPIRY, nil)
 	str, _ := token.SignedString([]byte(config.ACCESS_SECRET))
 	return str
 }

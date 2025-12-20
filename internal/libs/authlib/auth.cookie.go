@@ -29,13 +29,9 @@ func Invalidate(name string) http.Cookie {
 	return ToCookie(name, "", -1)
 }
 
-func IsCookieRememberMe(cookie http.Cookie) bool {
-	return !cookie.Expires.IsZero()
-}
-
 func CreateRefreshCookie(id, role string, rememberMe bool) http.Cookie {
 	expires := time.Duration(0)
-	str := CreateRefreshToken(id, role)
+	str := CreateRefreshToken(id, role, rememberMe)
 	if rememberMe {
 		expires = config.REFRESH_TOKEN_EXPIRY
 	}
@@ -45,7 +41,7 @@ func CreateRefreshCookie(id, role string, rememberMe bool) http.Cookie {
 
 func CreateAccessCookie(id, role string, rememberMe bool) http.Cookie {
 	expires := time.Duration(0)
-	str := CreateAccessToken(id, role)
+	str := CreateAccessToken(id, role, rememberMe)
 	if rememberMe {
 		expires = config.ACCESS_TOKEN_EXPIRY
 	}
