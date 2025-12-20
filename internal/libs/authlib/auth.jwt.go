@@ -1,6 +1,7 @@
 package authlib
 
 import (
+	"errors"
 	"school-information-system/config"
 	"time"
 
@@ -53,22 +54,30 @@ func CreateAccessToken(id, role string) string {
 	return str
 }
 
-func ParseRefreshToken(str string) (claims Claims, ok bool) {
+func ParseRefreshToken(str string) (claims Claims, err error) {
 	token, err := jwt.ParseWithClaims(str, &claims, createKeyFunc(config.REFRESH_SECRET))
 	if err != nil {
-		ok = false
+		if errors.Is(err, jwt.ErrTokenExpired) {
+			err = errors.New("refresh token is expired")
+		}
 		return
 	}
-	ok = token.Valid
+	if !token.Valid {
+		err = errors.New("invalid refresh token")
+	}
 	return
 }
 
-func ParseAccessToken(str string) (claims Claims, ok bool) {
+func ParseAccessToken(str string) (claims Claims, err error) {
 	token, err := jwt.ParseWithClaims(str, &claims, createKeyFunc(config.ACCESS_SECRET))
 	if err != nil {
-		ok = false
+		if errors.Is(err, jwt.ErrTokenExpired) {
+			err = errors.New("access token is expired")
+		}
 		return
 	}
-	ok = token.Valid
+	if !token.Valid {
+		err = errors.New("invalid access token")
+	}
 	return
 }

@@ -14,7 +14,7 @@ func ToCookie(name string, str string, expires time.Duration) (cookie http.Cooki
 		Path:     "/",
 		SameSite: http.SameSiteStrictMode,
 		Secure:   config.IsEnvProd(),
-		HttpOnly: config.IsEnvDev(),
+		HttpOnly: true,
 	}
 	if expires > 0 {
 		cookie.Expires = time.Now().Add(expires)
@@ -27,6 +27,10 @@ func ToCookie(name string, str string, expires time.Duration) (cookie http.Cooki
 
 func Invalidate(name string) http.Cookie {
 	return ToCookie(name, "", -1)
+}
+
+func IsCookieRememberMe(cookie http.Cookie) bool {
+	return !cookie.Expires.IsZero()
 }
 
 func CreateRefreshCookie(id, role string, rememberMe bool) http.Cookie {
