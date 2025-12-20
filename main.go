@@ -1,7 +1,7 @@
 package main
 
-import "school-information-system/db"
+import "school-information-system/database"
 
 func main() {
-	db.Connect()
+	database.Connect()
 }
