@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"school-information-system/config"
 	"school-information-system/internal/libs/authlib"
+	"school-information-system/internal/libs/errorlib"
 	"school-information-system/internal/libs/replylib"
 	"school-information-system/internal/models"
 	"slices"
@@ -26,6 +27,9 @@ func (*Auth) protected(c *gin.Context) (claims authlib.Claims, newAccessCookie, 
 	if err == nil {
 		claims, err = authlib.ParseAccessToken(accessCookie.Value)
 		if err == nil {
+			if claims.Role == string(models.RoleUnsetted) {
+				err = errorlib.ErrNotActivated
+			}
 			return
 		}
 	}
@@ -39,6 +43,10 @@ func (*Auth) protected(c *gin.Context) (claims authlib.Claims, newAccessCookie, 
 
 	claims, err = authlib.ParseRefreshToken(refreshCookie.Value)
 	if err != nil {
+		return
+	}
+	if claims.Role == string(models.RoleUnsetted) {
+		err = errorlib.ErrNotActivated
 		return
 	}
 
@@ -88,18 +96,32 @@ func (mw *Auth) RoleProtected(roles ...models.UserRole) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		rp := replylib.Client.New(adapter.AdaptGin(c))
 
+		// get role
 		var role string
 		if r, exists := c.Get("role"); exists {
 			role, _ = r.(string)
 		} else {
 			claims, newAccessCookie, newRefreshCookie, err := mw.protected(c)
 			if err != nil {
+				// if unsetted role allowed and claims role is unsetted then next
+				if errors.Is(err, errorlib.ErrNotActivated) && slices.Contains(strRoles, string(models.RoleUnsetted)) {
+					mw.applyInternalProtectedReturn(c, rp, claims, newAccessCookie, newRefreshCookie)
+					c.Next()
+					return
+				}
 				rp.Error(replylib.CodeUnauthorized, err.Error()).FailJSON()
 				c.Abort()
 				return
 			}
 			mw.applyInternalProtectedReturn(c, rp, claims, newAccessCookie, newRefreshCookie)
 			role = claims.Role
+		}
+
+		// protect unsetted role and send better error message
+		if role == string(models.RoleUnsetted) && !slices.Contains(strRoles, string(models.RoleUnsetted)) {
+			rp.Error(replylib.CodeForbidden, errorlib.ErrNotActivated.Error()).FailJSON()
+			c.Abort()
+			return
 		}
 
 		if slices.Contains(strRoles, role) {
