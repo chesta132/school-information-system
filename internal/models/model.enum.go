@@ -1,10 +1,11 @@
 package models
 
-type UserRole string // "student", "teacher", "admin"
+type UserRole string // "student", "teacher", "admin", "unsetted"
 const (
-	RoleStudent UserRole = "student"
-	RoleTeacher UserRole = "teacher"
-	RoleAdmin   UserRole = "admin"
+	RoleStudent  UserRole = "student"
+	RoleTeacher  UserRole = "teacher"
+	RoleAdmin    UserRole = "admin"
+	RoleUnsetted UserRole = "unsetted"
 )
 
 type UserGender string // "male", "female"

@@ -11,7 +11,7 @@ func Migrate(db *gorm.DB) {
 		log.Fatal("school-app: failed to migrate databases model", err.Error())
 	}
 
-	if err := CreateEnum(db, "user_role", []string{"student", "teacher", "admin"}); err != nil {
+	if err := CreateEnum(db, "user_role", []string{"student", "teacher", "admin", "unsetted"}); err != nil {
 		log.Fatal("school-app: failed to create user role enum", err.Error())
 	}
 
