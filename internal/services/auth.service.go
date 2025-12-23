@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"net/http"
+	"school-information-system/config"
 	"school-information-system/internal/libs/authlib"
 	"school-information-system/internal/libs/phonelib"
 	"school-information-system/internal/libs/replylib"
@@ -20,7 +21,8 @@ import (
 )
 
 type Auth struct {
-	userRepo *repos.User
+	userRepo    *repos.User
+	revokedRepo *repos.Revoked
 }
 
 type ContextedAuth struct {
@@ -29,8 +31,8 @@ type ContextedAuth struct {
 	ctx context.Context
 }
 
-func NewAuth(userRepo *repos.User) *Auth {
-	return &Auth{userRepo}
+func NewAuth(userRepo *repos.User, revokedRepo *repos.Revoked) *Auth {
+	return &Auth{userRepo, revokedRepo}
 }
 
 func (s *Auth) ApplyContext(c *gin.Context) *ContextedAuth {
@@ -166,4 +168,23 @@ func (s *ContextedAuth) SignIn(payload payload.RequestSignIn) (*models.User, []h
 	refresh := authlib.CreateRefreshCookie(user.ID, string(user.Role), payload.RememberMe)
 
 	return &user, []http.Cookie{access, refresh}, nil
+}
+
+func (s *ContextedAuth) SignOut() []http.Cookie {
+	clientRefresh, _ := s.c.Cookie(config.REFRESH_TOKEN_KEY)
+	refresh, err := authlib.ParseRefreshToken(clientRefresh)
+
+	// revoke refresh token
+	if err == nil {
+		revokedToken := &models.Revoked{
+			Token:        clientRefresh,
+			Reason:       models.ReasonUserSignOut,
+			RevokedUntil: refresh.ExpiresAt.Time,
+		}
+		s.revokedRepo.Create(s.ctx, revokedToken)
+	}
+
+	acccessCookie := authlib.Invalidate(config.ACCESS_TOKEN_KEY)
+	refreshCookie := authlib.Invalidate(config.REFRESH_TOKEN_KEY)
+	return []http.Cookie{acccessCookie, refreshCookie}
 }
