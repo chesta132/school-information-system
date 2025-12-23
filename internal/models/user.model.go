@@ -66,7 +66,7 @@ type Admin struct {
 type Parent struct {
 	ID       string     `gorm:"default:gen_random_uuid()" json:"id"`
 	FullName string     `json:"full_name"`
-	Phone    string     `gorm:"uniqueIndex" json:"phone"` // phone number
+	Phone    string     `gorm:"unique" json:"phone"` // phone number
 	Email    string     `gorm:"unique" json:"email"`
 	Gender   UserGender `gorm:"type:user_gender" json:"gender"` // "male", "female"
 

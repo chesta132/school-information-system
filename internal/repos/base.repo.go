@@ -51,6 +51,17 @@ func (r *read[T]) GetByIDs(ctx context.Context, ids []string) ([]T, error) {
 	return r.GetAll(ctx, "id IN ?", ids)
 }
 
+func (r *read[T]) Count(ctx context.Context, where any, args ...any) (count int64, err error) {
+	err = r.db.WithContext(ctx).Where(where, args...).Count(&count).Error
+	return
+}
+
+func (r *read[T]) Exists(ctx context.Context, where any, args ...any) (bool, error) {
+	var count int64
+	err := r.db.WithContext(ctx).Where(where, args...).Limit(1).Count(&count).Error
+	return count > 0, err
+}
+
 // update
 
 func (r *update[T]) Update(ctx context.Context, u T, where any, args ...any) error {
