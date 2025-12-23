@@ -27,6 +27,7 @@ func (r *User) DB() *gorm.DB {
 	return r.db
 }
 
+// remove this func if not needed later
 func (r *User) DeleteUser(ctx context.Context, where any, args ...any) error {
 	// delete parents if there is no student related to parents
 	return r.db.Transaction(func(tx *gorm.DB) error {
@@ -75,9 +76,9 @@ func (r *User) DeleteUser(ctx context.Context, where any, args ...any) error {
 	})
 }
 
-func (r *User) DeleteAllUser(ctx context.Context, where any, args ...any) error {
+func (r *User) DeleteAllUser(ctx context.Context, where any, args ...any) (rowsAffected int, err error) {
 	// delete parents if there is no student related to parents
-	return r.db.Transaction(func(tx *gorm.DB) error {
+	err = r.db.Transaction(func(tx *gorm.DB) error {
 		// each user.StudentProfile only have ID and UserID
 		users, err := gorm.G[models.User](tx.Unscoped()).
 			Preload("StudentProfile", func(db gorm.PreloadBuilder) error {
@@ -127,7 +128,8 @@ func (r *User) DeleteAllUser(ctx context.Context, where any, args ...any) error 
 			}
 		}
 
-		_, err = gorm.G[models.User](tx.Unscoped()).Where(where, args...).Delete(ctx)
+		rowsAffected, err = gorm.G[models.User](tx.Unscoped()).Where(where, args...).Delete(ctx)
 		return err
 	})
+	return
 }

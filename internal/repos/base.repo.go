@@ -85,15 +85,15 @@ func (r *update[T]) UpdateByIDAndGet(ctx context.Context, id string, u T) (resul
 
 // delete
 
-func (r *delete[T]) Delete(ctx context.Context, where any, args ...any) error {
-	_, err := gorm.G[T](r.db).Where(where, args...).Delete(ctx)
-	return err
+func (r *delete[T]) Delete(ctx context.Context, where any, args ...any) (rowsAffected int, err error) {
+	return gorm.G[T](r.db).Where(where, args...).Delete(ctx)
 }
 
-func (r *delete[T]) DeleteByID(ctx context.Context, id string) error {
-	return r.Delete(ctx, "id = ?", id)
+func (r *delete[T]) DeleteByID(ctx context.Context, id string) (success bool, err error) {
+	rowsAffected, err := r.Delete(ctx, "id = ?", id)
+	return rowsAffected > 0, err
 }
 
-func (r *delete[T]) DeleteByIDs(ctx context.Context, ids []string) error {
+func (r *delete[T]) DeleteByIDs(ctx context.Context, ids []string) (rowsAffected int, err error) {
 	return r.Delete(ctx, "id IN ?", ids)
 }
