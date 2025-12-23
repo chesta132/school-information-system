@@ -29,6 +29,7 @@ func Migrate(db *gorm.DB) {
 		&models.Permission{},
 		&models.Class{},
 		&models.Subject{},
+		&models.Revoked{},
 	); err != nil {
 		log.Fatal("school-app: failed to migrate databases model", err.Error())
 	}

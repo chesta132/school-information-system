@@ -9,6 +9,7 @@ import (
 	"school-information-system/internal/libs/errorlib"
 	"school-information-system/internal/libs/replylib"
 	"school-information-system/internal/models"
+	"school-information-system/internal/repos"
 	"slices"
 	"strings"
 	"time"
@@ -16,13 +17,15 @@ import (
 	adapter "github.com/chesta132/goreply/adapter/gin"
 	"github.com/chesta132/goreply/reply"
 	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 )
 
 type Auth struct {
-	// add blacklist system later
+	revokedRepo *repos.Revoked
 }
 
-func (*Auth) protected(c *gin.Context) (claims authlib.Claims, newAccessCookie, newRefreshCookie *http.Cookie, err error) {
+func (mw *Auth) protected(c *gin.Context) (claims authlib.Claims, newAccessCookie, newRefreshCookie *http.Cookie, err error) {
+	ctx := c.Request.Context()
 	accessCookie, err := c.Request.Cookie(config.ACCESS_TOKEN_KEY)
 	if err == nil {
 		claims, err = authlib.ParseAccessToken(accessCookie.Value)
@@ -38,6 +41,16 @@ func (*Auth) protected(c *gin.Context) (claims authlib.Claims, newAccessCookie, 
 	refreshCookie, err := c.Request.Cookie(config.REFRESH_TOKEN_KEY)
 	if err != nil {
 		err = errors.New("no refresh token provided")
+		return
+	}
+
+	// check if token is revoked
+	if revoked, revErr := mw.revokedRepo.GetFirst(ctx, "token = ?", refreshCookie.Value); !errors.Is(revErr, gorm.ErrRecordNotFound) {
+		if revErr != nil {
+			err = revErr
+			return
+		}
+		err = errors.New(revoked.Message())
 		return
 	}
 

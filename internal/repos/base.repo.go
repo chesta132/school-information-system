@@ -39,6 +39,7 @@ func (r *create[T]) CreateAll(ctx context.Context, data *[]T) error {
 func (r *read[T]) GetFirst(ctx context.Context, where any, args ...any) (T, error) {
 	return gorm.G[T](r.db).Where(where, args...).First(ctx)
 }
+
 func (r *read[T]) GetByID(ctx context.Context, id string) (T, error) {
 	return r.GetFirst(ctx, "id = ?", id)
 }
