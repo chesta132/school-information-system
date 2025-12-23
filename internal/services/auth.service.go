@@ -12,7 +12,6 @@ import (
 	"school-information-system/internal/models"
 	"school-information-system/internal/models/payload"
 	"school-information-system/internal/repos"
-	"strings"
 
 	"github.com/chesta132/goreply/reply"
 	"github.com/gin-gonic/gin"
@@ -48,7 +47,7 @@ func (s *ContextedAuth) SignUp(payload payload.RequestSignUp) (*models.User, []h
 			Code:    replylib.CodeBadRequest,
 			Message: "invalid payload",
 			Details: err.Error(),
-			Field:   strings.Join(fields, ", "),
+			Fields:  fields,
 		}
 	}
 
@@ -58,7 +57,7 @@ func (s *ContextedAuth) SignUp(payload payload.RequestSignUp) (*models.User, []h
 		return nil, nil, &reply.ErrorPayload{
 			Code:    replylib.CodeBadRequest,
 			Message: "invalid phone number",
-			Field:   "phone",
+			Fields:  []string{"phone"},
 		}
 	}
 
@@ -72,7 +71,7 @@ func (s *ContextedAuth) SignUp(payload payload.RequestSignUp) (*models.User, []h
 		return nil, nil, &reply.ErrorPayload{
 			Code:    replylib.CodeConflict,
 			Message: "email already registered",
-			Field:   "email",
+			Fields:  []string{"email"},
 		}
 	}
 
@@ -86,7 +85,7 @@ func (s *ContextedAuth) SignUp(payload payload.RequestSignUp) (*models.User, []h
 		return nil, nil, &reply.ErrorPayload{
 			Code:    replylib.CodeConflict,
 			Message: "phone number already registered",
-			Field:   "phone",
+			Fields:  []string{"phone"},
 		}
 	}
 
@@ -133,7 +132,7 @@ func (s *ContextedAuth) SignIn(payload payload.RequestSignIn) (*models.User, []h
 			Code:    replylib.CodeBadRequest,
 			Message: "invalid payload",
 			Details: err.Error(),
-			Field:   strings.Join(fields, ", "),
+			Fields:  fields,
 		}
 	}
 
@@ -144,7 +143,7 @@ func (s *ContextedAuth) SignIn(payload payload.RequestSignIn) (*models.User, []h
 			return nil, nil, &reply.ErrorPayload{
 				Code:    replylib.CodeNotFound,
 				Message: "email not registered yet",
-				Field:   "email",
+				Fields:  []string{"email"},
 			}
 		}
 		return nil, nil, &reply.ErrorPayload{
@@ -158,7 +157,7 @@ func (s *ContextedAuth) SignIn(payload payload.RequestSignIn) (*models.User, []h
 		return nil, nil, &reply.ErrorPayload{
 			Code:    replylib.CodeUnauthorized,
 			Message: "password is incorrect",
-			Field:   "password",
+			Fields:  []string{"password"},
 		}
 	}
 
