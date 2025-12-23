@@ -14,18 +14,3 @@ type Revoked struct {
 	CreatedAt    time.Time `gorm:"autoCreateTime" json:"-"`
 	UpdatedAt    time.Time `gorm:"autoUpdateTime" json:"-"`
 }
-
-const (
-	ReasonUserSignOut = "user sign out"
-)
-
-var revokedMessages = map[string]string{
-	ReasonUserSignOut: "user already signed out",
-}
-
-func (r *Revoked) Message() string {
-	if msg, ok := revokedMessages[r.Reason]; ok {
-		return msg
-	}
-	return r.Reason
-}

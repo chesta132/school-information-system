@@ -178,7 +178,7 @@ func (s *ContextedAuth) SignOut() []http.Cookie {
 	if err == nil {
 		revokedToken := &models.Revoked{
 			Token:        clientRefresh,
-			Reason:       models.ReasonUserSignOut,
+			Reason:       authlib.ReasonUserSignOut,
 			RevokedUntil: refresh.ExpiresAt.Time,
 		}
 		s.revokedRepo.Create(s.ctx, revokedToken)

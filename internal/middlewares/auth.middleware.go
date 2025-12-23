@@ -54,7 +54,7 @@ func (mw *Auth) protected(c *gin.Context) (claims authlib.Claims, newAccessCooki
 			err = revErr
 			return
 		}
-		err = errors.New(revoked.Message())
+		err = errors.New(authlib.MessageOfRevoke(revoked))
 		return
 	}
 
