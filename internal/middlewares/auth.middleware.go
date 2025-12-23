@@ -24,6 +24,10 @@ type Auth struct {
 	revokedRepo *repos.Revoked
 }
 
+func NewAuth(revokedRepo *repos.Revoked) *Auth {
+	return &Auth{revokedRepo}
+}
+
 func (mw *Auth) protected(c *gin.Context) (claims authlib.Claims, newAccessCookie, newRefreshCookie *http.Cookie, err error) {
 	ctx := c.Request.Context()
 	accessCookie, err := c.Request.Cookie(config.ACCESS_TOKEN_KEY)
@@ -91,7 +95,11 @@ func (mw *Auth) Protected() gin.HandlerFunc {
 		rp := replylib.Client.New(adapter.AdaptGin(c))
 		claims, newAccessCookie, newRefreshCookie, err := mw.protected(c)
 		if err != nil {
-			rp.Error(replylib.CodeUnauthorized, err.Error()).FailJSON()
+			if errors.Is(err, errorlib.ErrNotActivated) {
+				rp.Error(replylib.CodeForbidden, err.Error()).FailJSON()
+			} else {
+				rp.Error(replylib.CodeUnauthorized, err.Error()).FailJSON()
+			}
 			c.Abort()
 			return
 		}
@@ -122,7 +130,12 @@ func (mw *Auth) RoleProtected(roles ...models.UserRole) gin.HandlerFunc {
 					c.Next()
 					return
 				}
-				rp.Error(replylib.CodeUnauthorized, err.Error()).FailJSON()
+
+				if errors.Is(err, errorlib.ErrNotActivated) {
+					rp.Error(replylib.CodeForbidden, err.Error()).FailJSON()
+				} else {
+					rp.Error(replylib.CodeUnauthorized, err.Error()).FailJSON()
+				}
 				c.Abort()
 				return
 			}

@@ -1,7 +1,42 @@
 package main
 
-import "school-information-system/database"
+import (
+	"school-information-system/config"
+	"school-information-system/database"
+	"school-information-system/internal/cron"
+	"school-information-system/internal/libs/validatorlib"
+	"school-information-system/internal/routes"
 
+	"github.com/gin-gonic/gin"
+)
+
+// INFO: i just put some test routes here for quick testing of auth service
 func main() {
-	database.Connect()
+	// check env
+	if err := config.EnvCheck(); err != nil {
+		panic(err)
+	}
+
+	// setup database
+	db := database.Connect()
+
+	// setup validator
+	validatorlib.RegisterTagName()
+
+	// setup router
+	r := gin.Default()
+	router := routes.NewRoute(db)
+
+	// register routes
+	{
+		router.RegisterBase(r)
+	}
+
+	// start cron jobs
+	cronjob := cron.New(db)
+	cronjob.Start()
+	defer cronjob.Stop()
+
+	// port is automatically set to PORT env by gin
+	r.Run()
 }
