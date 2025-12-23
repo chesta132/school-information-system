@@ -13,7 +13,7 @@ type User struct {
 	Password string     `json:"-"`                                           // auth password
 	Role     UserRole   `gorm:"type:user_role;default:unsetted" json:"role"` // "student", "teacher", "admin", "unsetted"
 	Gender   UserGender `gorm:"type:user_gender" json:"gender"`              // "male", "female"
-	Contact  string     `json:"contact"`                                     // phone number
+	Contact  string     `gorm:"uniqueIndex" json:"contact"`                  // phone number
 
 	StudentProfile *Student `gorm:"foreignKey:UserID;constraint:OnDelete:CASCADE" json:"student_profile,omitempty"`
 	TeacherProfile *Teacher `gorm:"foreignKey:UserID;constraint:OnDelete:CASCADE" json:"teacher_profile,omitempty"`
