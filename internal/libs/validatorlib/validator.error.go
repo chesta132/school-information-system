@@ -29,6 +29,10 @@ func TranslateError(err error) (error, validator.ValidationErrors) {
 				messages = append(messages, fmt.Sprintf("%s is not valid email", err.Field()))
 			case "oneof":
 				messages = append(messages, fmt.Sprintf("%s is not a valid enum of [%s]", err.Field(), err.Param()))
+			case "min":
+				messages = append(messages, fmt.Sprintf("%s must be at least %s characters", err.Field(), err.Param()))
+			case "max":
+				messages = append(messages, fmt.Sprintf("%s must be at most %s characters", err.Field(), err.Param()))
 			}
 		}
 	}

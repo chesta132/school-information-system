@@ -5,6 +5,7 @@ import (
 	"errors"
 	"net/http"
 	"school-information-system/internal/libs/authlib"
+	"school-information-system/internal/libs/phonelib"
 	"school-information-system/internal/libs/replylib"
 	"school-information-system/internal/libs/slicelib"
 	"school-information-system/internal/libs/validatorlib"
@@ -37,11 +38,11 @@ func (s *Auth) ApplyContext(c *gin.Context) *ContextedAuth {
 	return &ContextedAuth{s, c, c.Request.Context()}
 }
 
-func (s *ContextedAuth) SignIn(payload payload.RequestSignIn) (*models.User, []http.Cookie, *reply.ErrorPayload) {
+func (s *ContextedAuth) SignUp(payload payload.RequestSignUp) (*models.User, []http.Cookie, *reply.ErrorPayload) {
+	// validate payload
 	if err := validatorlib.Client.Struct(payload); err != nil {
 		err, valErrs := validatorlib.TranslateError(err)
-		fields := slicelib.Map(valErrs, func(i int, val validator.FieldError) string { return val.Field() })
-		fields = slicelib.Unique(fields)
+		fields := slicelib.Unique(slicelib.Map(valErrs, func(i int, val validator.FieldError) string { return val.Field() }))
 
 		return nil, nil, &reply.ErrorPayload{
 			Code:    replylib.CodeBadRequest,
@@ -51,6 +52,92 @@ func (s *ContextedAuth) SignIn(payload payload.RequestSignIn) (*models.User, []h
 		}
 	}
 
+	// format and validate phone number
+	formattedNumber, validNum := phonelib.FormatNumber(payload.Phone)
+	if !validNum {
+		return nil, nil, &reply.ErrorPayload{
+			Code:    replylib.CodeBadRequest,
+			Message: "invalid phone number",
+			Field:   "phone",
+		}
+	}
+
+	// check email
+	if exists, err := s.userRepo.Exists(s.ctx, "email = ?", payload.Email); err != nil {
+		return nil, nil, &reply.ErrorPayload{
+			Code:    replylib.CodeServerError,
+			Message: err.Error(),
+		}
+	} else if exists {
+		return nil, nil, &reply.ErrorPayload{
+			Code:    replylib.CodeConflict,
+			Message: "email already registered",
+			Field:   "email",
+		}
+	}
+
+	// check phone number
+	if exists, err := s.userRepo.Exists(s.ctx, "phone = ?", formattedNumber); err != nil {
+		return nil, nil, &reply.ErrorPayload{
+			Code:    replylib.CodeServerError,
+			Message: err.Error(),
+		}
+	} else if exists {
+		return nil, nil, &reply.ErrorPayload{
+			Code:    replylib.CodeConflict,
+			Message: "phone number already registered",
+			Field:   "phone",
+		}
+	}
+
+	// create user object
+	hashedPassword, err := authlib.HashPassword(payload.Password)
+	if err != nil {
+		return nil, nil, &reply.ErrorPayload{
+			Code:    replylib.CodeServerError,
+			Message: err.Error(),
+		}
+	}
+
+	newUser := &models.User{
+		FullName: payload.FullName,
+		Email:    payload.Email,
+		Password: hashedPassword,
+		Role:     models.RoleUnsetted,
+		Gender:   payload.Gender,
+		Phone:    formattedNumber,
+	}
+
+	// save user
+	if err := s.userRepo.Create(s.ctx, newUser); err != nil {
+		return nil, nil, &reply.ErrorPayload{
+			Code:    replylib.CodeServerError,
+			Message: err.Error(),
+		}
+	}
+
+	// create cookies and return
+	access := authlib.CreateAccessCookie(newUser.ID, string(newUser.Role), payload.RememberMe)
+	refresh := authlib.CreateRefreshCookie(newUser.ID, string(newUser.Role), payload.RememberMe)
+
+	return newUser, []http.Cookie{access, refresh}, nil
+}
+
+func (s *ContextedAuth) SignIn(payload payload.RequestSignIn) (*models.User, []http.Cookie, *reply.ErrorPayload) {
+	// validate payload
+	if err := validatorlib.Client.Struct(payload); err != nil {
+		err, valErrs := validatorlib.TranslateError(err)
+		fields := slicelib.Unique(slicelib.Map(valErrs, func(i int, val validator.FieldError) string { return val.Field() }))
+
+		return nil, nil, &reply.ErrorPayload{
+			Code:    replylib.CodeBadRequest,
+			Message: "invalid payload",
+			Details: err.Error(),
+			Field:   strings.Join(fields, ", "),
+		}
+	}
+
+	// get user by email
 	user, err := s.userRepo.GetFirst(s.ctx, "email = ?", payload.Email)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -66,6 +153,7 @@ func (s *ContextedAuth) SignIn(payload payload.RequestSignIn) (*models.User, []h
 		}
 	}
 
+	// validate password
 	if !authlib.ComparePassword(payload.Password, user.Password) {
 		return nil, nil, &reply.ErrorPayload{
 			Code:    replylib.CodeUnauthorized,
@@ -74,6 +162,7 @@ func (s *ContextedAuth) SignIn(payload payload.RequestSignIn) (*models.User, []h
 		}
 	}
 
+	// create cookies and return
 	access := authlib.CreateAccessCookie(user.ID, string(user.Role), payload.RememberMe)
 	refresh := authlib.CreateRefreshCookie(user.ID, string(user.Role), payload.RememberMe)
 

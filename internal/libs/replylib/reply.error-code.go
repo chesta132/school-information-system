@@ -1,6 +1,10 @@
 package replylib
 
-import "net/http"
+import (
+	"net/http"
+
+	"github.com/chesta132/goreply/reply"
+)
 
 const (
 	CodeNotFound            = "NOT_FOUND"
@@ -23,7 +27,7 @@ const (
 	CodeNotImplemented      = "NOT_IMPLEMENTED"
 )
 
-var CodeAliases = map[string]int{
+var CodeAliases = reply.CodeAliases{
 	CodeNotFound:            http.StatusNotFound,
 	CodeServerError:         http.StatusInternalServerError,
 	CodeBadRequest:          http.StatusBadRequest,
