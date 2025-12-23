@@ -25,11 +25,13 @@ func main() {
 
 	// setup router
 	r := gin.Default()
+	api := r.Group("/api")
 	router := routes.NewRoute(db)
 
 	// register routes
 	{
 		router.RegisterBase(r)
+		router.RegisterAuth(api.Group("/auth"))
 	}
 
 	// start cron jobs
