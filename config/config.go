@@ -8,6 +8,7 @@ import (
 
 const (
 	APP_NAME = "school-information-system"
+	APP_REGION = "ID"
 
 	// query
 
