@@ -24,15 +24,6 @@ func Migrate(db *gorm.DB) {
 		log.Fatal("[MIGRATE] failed to create user gender enum", err.Error())
 	}
 
-	if err := CreateEnum(db, "permission_action", []string{
-		string(models.ActionCreate),
-		string(models.ActionRead),
-		string(models.ActionUpdate),
-		string(models.ActionDelete),
-	}); err != nil {
-		log.Fatal("[MIGRATE] failed to create permission action enum", err.Error())
-	}
-
 	if err := CreateEnum(db, "permission_resource", []string{
 		string(models.ResourceRole),
 		string(models.ResourcePermission),

@@ -3,6 +3,7 @@ package main
 import (
 	"school-information-system/config"
 	"school-information-system/database"
+	"school-information-system/database/seeds"
 	"school-information-system/internal/cron"
 	"school-information-system/internal/libs/validatorlib"
 	"school-information-system/internal/routes"
@@ -19,6 +20,7 @@ func main() {
 
 	// setup database
 	db := database.Connect()
+	seeds.Migrate(db)
 
 	// setup validator
 	validatorlib.RegisterTagName()
