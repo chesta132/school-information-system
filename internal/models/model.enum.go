@@ -21,3 +21,10 @@ const (
 	ActionUpdate PermissionAction = "update"
 	ActionDelete PermissionAction = "delete"
 )
+
+type PermissionResource string
+
+const (
+	ResourceRole       PermissionResource = "role"
+	ResourcePermission PermissionResource = "permission"
+)

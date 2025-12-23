@@ -14,7 +14,7 @@ func Connect() *gorm.DB {
 	db, err := gorm.Open(postgres.Open(dsn))
 
 	if err != nil {
-		log.Fatal("school-app: failed to connect database", err.Error())
+		log.Fatal("[DB-CONNECT] failed to connect database", err.Error())
 	}
 
 	Migrate(db)

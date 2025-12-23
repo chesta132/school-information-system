@@ -5,7 +5,7 @@ import "time"
 type Permission struct {
 	ID          string             `gorm:"default:gen_random_uuid()" json:"id"`
 	Name        string             `gorm:"unique" json:"name"`
-	Resource    string             `json:"resource"`
+	Resource    PermissionResource `gorm:"type:permission_resource" json:"resource"`
 	Description string             `json:"description"`
 	Actions     []PermissionAction `gorm:"type:permission_action[]" json:"actions"` // []("create", "read", "update", "delete")
 	AuthorID    string             `json:"-"`

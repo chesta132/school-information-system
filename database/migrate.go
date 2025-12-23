@@ -8,16 +8,36 @@ import (
 )
 
 func Migrate(db *gorm.DB) {
-	if err := CreateEnum(db, "user_role", []string{"student", "teacher", "admin", "unsetted"}); err != nil {
-		log.Fatal("school-app: failed to create user role enum", err.Error())
+	if err := CreateEnum(db, "user_role", []string{
+		string(models.RoleStudent),
+		string(models.RoleTeacher),
+		string(models.RoleAdmin),
+		string(models.RoleUnsetted)},
+	); err != nil {
+		log.Fatal("[MIGRATE] failed to create user role enum", err.Error())
 	}
 
-	if err := CreateEnum(db, "user_gender", []string{"male", "female"}); err != nil {
-		log.Fatal("school-app: failed to create user gender enum", err.Error())
+	if err := CreateEnum(db, "user_gender", []string{
+		string(models.GenderMale),
+		string(models.GenderFemale),
+	}); err != nil {
+		log.Fatal("[MIGRATE] failed to create user gender enum", err.Error())
 	}
 
-	if err := CreateEnum(db, "permission_action", []string{"create", "read", "update", "delete"}); err != nil {
-		log.Fatal("school-app: failed to create permission action enum", err.Error())
+	if err := CreateEnum(db, "permission_action", []string{
+		string(models.ActionCreate),
+		string(models.ActionRead),
+		string(models.ActionUpdate),
+		string(models.ActionDelete),
+	}); err != nil {
+		log.Fatal("[MIGRATE] failed to create permission action enum", err.Error())
+	}
+
+	if err := CreateEnum(db, "permission_resource", []string{
+		string(models.ResourceRole),
+		string(models.ResourcePermission),
+	}); err != nil {
+		log.Fatal("[MIGRATE] failed to create permission resource enum", err.Error())
 	}
 
 	if err := db.AutoMigrate(
@@ -31,6 +51,6 @@ func Migrate(db *gorm.DB) {
 		&models.Subject{},
 		&models.Revoked{},
 	); err != nil {
-		log.Fatal("school-app: failed to migrate databases model", err.Error())
+		log.Fatal("[MIGRATE] failed to migrate databases model", err.Error())
 	}
 }
