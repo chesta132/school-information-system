@@ -7,26 +7,34 @@ import (
 	"gorm.io/gorm"
 )
 
-var permissionSeeds = []models.Permission{
+const (
+	PermRoleName       = "role full manage"
+	PermPermissionName = "permission full manage"
+)
+
+var PermissionSeeds = []models.Permission{
 	{
-		Name:        "role full manage",
+		Name:        PermRoleName,
 		Resource:    models.ResourceRole,
 		Description: "Full access to manage role of users",
 		Actions:     []models.PermissionAction{models.ActionCreate, models.ActionRead, models.ActionUpdate, models.ActionDelete},
 	},
 	{
-		Name:        "permission full manage",
+		Name:        PermPermissionName,
 		Resource:    models.ResourcePermission,
 		Description: "Full access to manage permissions of users with admin role",
 		Actions:     []models.PermissionAction{models.ActionCreate, models.ActionRead, models.ActionUpdate, models.ActionDelete},
 	},
 }
 
+var PermissionSeedNames = slicelib.Map(PermissionSeeds, func(idx int, perm models.Permission) string { return perm.Name })
+var PermissionSeedIDs = make(map[string]string, len(PermissionSeeds))
+
 func getNonExistingPermissionSeeds(db *gorm.DB) ([]models.Permission, error) {
 	var existingNames []string
 	err := db.Model(&models.Permission{}).
 		Select("name").
-		Where("name IN ?", slicelib.Map(permissionSeeds, func(idx int, perm models.Permission) string { return perm.Name })).
+		Where("name IN ?", PermissionSeedNames).
 		Pluck("name", &existingNames).Error
 
 	if err != nil {
@@ -38,9 +46,28 @@ func getNonExistingPermissionSeeds(db *gorm.DB) ([]models.Permission, error) {
 		existingMap[name] = true
 	}
 
-	return slicelib.Filter(permissionSeeds, func(idx int, perm models.Permission) bool {
+	return slicelib.Filter(PermissionSeeds, func(idx int, perm models.Permission) bool {
 		return !existingMap[perm.Name]
 	}), nil
+}
+
+func populateSeedIDs(db *gorm.DB) error {
+	err := db.Model(&models.Permission{}).Where("name IN ?", PermissionSeedNames).Find(&PermissionSeeds).Error
+	if err != nil {
+		return err
+	}
+
+	nameToIndex := make(map[string]int, len(PermissionSeeds))
+	for i, seed := range PermissionSeeds {
+		nameToIndex[seed.Name] = i
+	}
+
+	for i, perm := range PermissionSeeds {
+		PermissionSeeds[i] = perm
+		PermissionSeedIDs[perm.Name] = perm.ID
+	}
+
+	return nil
 }
 
 func PlantPermissions(db *gorm.DB) error {
@@ -49,7 +76,13 @@ func PlantPermissions(db *gorm.DB) error {
 		return err
 	}
 	if len(perms) == 0 {
-		return nil
+		return populateSeedIDs(db)
 	}
-	return db.Model(&models.Permission{}).Create(&perms).Error
+
+	err = db.Model(&models.Permission{}).Create(&perms).Error
+	if err != nil {
+		return err
+	}
+
+	return populateSeedIDs(db)
 }
