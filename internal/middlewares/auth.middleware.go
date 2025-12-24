@@ -90,19 +90,26 @@ func (*Auth) applyInternalProtectedReturn(c *gin.Context, rp *reply.Reply, claim
 	c.Set("role", claims.Role)
 }
 
-func (mw *Auth) Protected() gin.HandlerFunc {
+func (mw *Auth) Protected(allowUnsettedRole ...bool) gin.HandlerFunc {
+	allowUnsetted := false
+	if len(allowUnsettedRole) > 0 {
+		allowUnsetted = allowUnsettedRole[0]
+	}
 	return func(c *gin.Context) {
 		rp := replylib.Client.New(adapter.AdaptGin(c))
 		claims, newAccessCookie, newRefreshCookie, err := mw.protected(c)
-		if err != nil {
-			if errors.Is(err, errorlib.ErrNotActivated) {
-				rp.Error(replylib.CodeForbidden, err.Error()).FailJSON()
-			} else {
-				rp.Error(replylib.CodeUnauthorized, err.Error()).FailJSON()
-			}
+
+		if errors.Is(err, errorlib.ErrNotActivated) && !allowUnsetted {
+			rp.Error(replylib.CodeForbidden, err.Error()).FailJSON()
 			c.Abort()
 			return
 		}
+		if err != nil && !errors.Is(err, errorlib.ErrNotActivated) {
+			rp.Error(replylib.CodeUnauthorized, err.Error()).FailJSON()
+			c.Abort()
+			return
+		}
+
 		mw.applyInternalProtectedReturn(c, rp, claims, newAccessCookie, newRefreshCookie)
 		c.Next()
 	}
