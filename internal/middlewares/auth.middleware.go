@@ -21,11 +21,12 @@ import (
 )
 
 type Auth struct {
+	userRepo    *repos.User
 	revokedRepo *repos.Revoked
 }
 
-func NewAuth(revokedRepo *repos.Revoked) *Auth {
-	return &Auth{revokedRepo}
+func NewAuth(userRepo *repos.User, revokedRepo *repos.Revoked) *Auth {
+	return &Auth{userRepo, revokedRepo}
 }
 
 func (mw *Auth) protected(c *gin.Context) (claims authlib.Claims, newAccessCookie, newRefreshCookie *http.Cookie, err error) {
@@ -164,5 +165,72 @@ func (mw *Auth) RoleProtected(roles ...models.UserRole) gin.HandlerFunc {
 
 		rp.Error(replylib.CodeForbidden, fmt.Sprintf("invalid role, only %s can access this resource", strings.Join(strRoles, ", "))).FailJSON()
 		c.Abort()
+	}
+}
+func (mw *Auth) PermissionProtected(resource models.PermissionResource, actions []models.PermissionAction) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		rp := replylib.Client.New(adapter.AdaptGin(c))
+		ctx := c.Request.Context()
+
+		var role string
+		uID, _ := c.Get("userID")
+		userID, _ := uID.(string)
+		if r, exists := c.Get("role"); exists {
+			role, _ = r.(string)
+		} else {
+			claims, newAccessCookie, newRefreshCookie, err := mw.protected(c)
+			if err != nil {
+				if errors.Is(err, errorlib.ErrNotActivated) {
+					rp.Error(replylib.CodeForbidden, err.Error()).FailJSON()
+				} else {
+					rp.Error(replylib.CodeUnauthorized, err.Error()).FailJSON()
+				}
+				c.Abort()
+				return
+			}
+			mw.applyInternalProtectedReturn(c, rp, claims, newAccessCookie, newRefreshCookie)
+			role = claims.Role
+			userID = claims.UserID
+		}
+
+		if role != string(models.RoleAdmin) {
+			rp.Error(replylib.CodeForbidden, "invalid role, only admin can access this resource").FailJSON()
+			c.Abort()
+			return
+		}
+
+		user, err := mw.userRepo.GetFirstWithPreload(ctx, []string{"AdminProfile.Permissions"}, "id = ? AND role = ?", userID, models.RoleAdmin)
+		if err != nil {
+			errPayload := errorlib.MakeNotFound(err, "your user profile not found", []string{})
+			rp.Error(errPayload.Code, errPayload.Message).FailJSON()
+			c.Abort()
+			return
+		}
+		c.Set("user", user)
+
+		requiredActions := make(map[models.PermissionAction]bool, len(actions))
+		for _, a := range actions {
+			requiredActions[a] = false
+		}
+
+		for _, perm := range user.AdminProfile.Permissions {
+			if perm.Resource == resource {
+				for _, act := range perm.Actions {
+					if _, exists := requiredActions[act]; exists {
+						requiredActions[act] = true
+					}
+				}
+			}
+		}
+
+		for action, found := range requiredActions {
+			if !found {
+				rp.Error(replylib.CodeForbidden, fmt.Sprintf("missing permission: %s.%s", resource, action)).FailJSON()
+				c.Abort()
+				return
+			}
+		}
+
+		c.Next()
 	}
 }

@@ -52,6 +52,14 @@ func (r *read[T]) GetByIDs(ctx context.Context, ids []string) ([]T, error) {
 	return r.GetAll(ctx, "id IN ?", ids)
 }
 
+func (r *read[T]) GetFirstWithPreload(ctx context.Context, preloads []string, where any, args ...any) (T, error) {
+	q := gorm.G[T](r.db).Where(where, args...)
+	for _, p := range preloads {
+		q.Preload(p, nil)
+	}
+	return q.First(ctx)
+}
+
 func (r *read[T]) Count(ctx context.Context, where any, args ...any) (count int64, err error) {
 	err = r.db.Model(new(T)).WithContext(ctx).Where(where, args...).Count(&count).Error
 	return
