@@ -1,3 +1,4 @@
+
 package middlewares
 
 import (
@@ -91,6 +92,35 @@ func (*Auth) applyInternalProtectedReturn(c *gin.Context, rp *reply.Reply, claim
 	c.Set("role", claims.Role)
 }
 
+// ensureAuthenticated to ensure protected middleware run, return false if not authenticated and aborted
+func (mw *Auth) ensureAuthenticated(c *gin.Context, rp *reply.Reply, allowUnsetted bool) bool {
+	// if prev middleware is protecting return true
+	if _, exists := c.Get("userID"); exists {
+		return true
+	}
+
+	// validate token
+	claims, newAccessCookie, newRefreshCookie, err := mw.protected(c)
+	if err != nil {
+		if errors.Is(err, errorlib.ErrNotActivated) && allowUnsetted {
+			mw.applyInternalProtectedReturn(c, rp, claims, newAccessCookie, newRefreshCookie)
+			return true
+		}
+
+		if errors.Is(err, errorlib.ErrNotActivated) {
+			rp.Error(replylib.CodeForbidden, err.Error()).FailJSON()
+		} else {
+			rp.Error(replylib.CodeUnauthorized, err.Error()).FailJSON()
+		}
+		c.Abort()
+		return false
+	}
+
+	mw.applyInternalProtectedReturn(c, rp, claims, newAccessCookie, newRefreshCookie)
+	return true
+}
+
+// Protected middleware basic auth
 func (mw *Auth) Protected(allowUnsettedRole ...bool) gin.HandlerFunc {
 	allowUnsetted := false
 	if len(allowUnsettedRole) > 0 {
@@ -98,24 +128,13 @@ func (mw *Auth) Protected(allowUnsettedRole ...bool) gin.HandlerFunc {
 	}
 	return func(c *gin.Context) {
 		rp := replylib.Client.New(adapter.AdaptGin(c))
-		claims, newAccessCookie, newRefreshCookie, err := mw.protected(c)
-
-		if errors.Is(err, errorlib.ErrNotActivated) && !allowUnsetted {
-			rp.Error(replylib.CodeForbidden, err.Error()).FailJSON()
-			c.Abort()
-			return
+		if mw.ensureAuthenticated(c, rp, allowUnsetted) {
+			c.Next()
 		}
-		if err != nil && !errors.Is(err, errorlib.ErrNotActivated) {
-			rp.Error(replylib.CodeUnauthorized, err.Error()).FailJSON()
-			c.Abort()
-			return
-		}
-
-		mw.applyInternalProtectedReturn(c, rp, claims, newAccessCookie, newRefreshCookie)
-		c.Next()
 	}
 }
 
+// RoleProtected protects with role validation
 func (mw *Auth) RoleProtected(roles ...models.UserRole) gin.HandlerFunc {
 	strRoles := make([]string, len(roles))
 	for i, r := range roles {
@@ -125,80 +144,57 @@ func (mw *Auth) RoleProtected(roles ...models.UserRole) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		rp := replylib.Client.New(adapter.AdaptGin(c))
 
-		// get role
-		var role string
-		if r, exists := c.Get("role"); exists {
-			role, _ = r.(string)
-		} else {
-			claims, newAccessCookie, newRefreshCookie, err := mw.protected(c)
-			if err != nil {
-				// if unsetted role allowed and claims role is unsetted then next
-				if errors.Is(err, errorlib.ErrNotActivated) && slices.Contains(strRoles, string(models.RoleUnsetted)) {
-					mw.applyInternalProtectedReturn(c, rp, claims, newAccessCookie, newRefreshCookie)
-					c.Next()
-					return
-				}
-
-				if errors.Is(err, errorlib.ErrNotActivated) {
-					rp.Error(replylib.CodeForbidden, err.Error()).FailJSON()
-				} else {
-					rp.Error(replylib.CodeUnauthorized, err.Error()).FailJSON()
-				}
-				c.Abort()
-				return
-			}
-			mw.applyInternalProtectedReturn(c, rp, claims, newAccessCookie, newRefreshCookie)
-			role = claims.Role
+		// make sure user is authenticated
+		allowUnsetted := slices.Contains(strRoles, string(models.RoleUnsetted))
+		if !mw.ensureAuthenticated(c, rp, allowUnsetted) {
+			return
 		}
 
-		// protect unsetted role and send better error message
-		if role == string(models.RoleUnsetted) && !slices.Contains(strRoles, string(models.RoleUnsetted)) {
+		roleInterface, _ := c.Get("role")
+		role, _ := roleInterface.(string)
+
+		// protect unsetted role
+		if role == string(models.RoleUnsetted) && !allowUnsetted {
 			rp.Error(replylib.CodeForbidden, errorlib.ErrNotActivated.Error()).FailJSON()
 			c.Abort()
 			return
 		}
 
-		if slices.Contains(strRoles, role) {
-			c.Next()
+		// protect roles
+		if !slices.Contains(strRoles, role) {
+			rp.Error(replylib.CodeForbidden, fmt.Sprintf("invalid role, only %s can access this resource", strings.Join(strRoles, ", "))).FailJSON()
+			c.Abort()
 			return
 		}
 
-		rp.Error(replylib.CodeForbidden, fmt.Sprintf("invalid role, only %s can access this resource", strings.Join(strRoles, ", "))).FailJSON()
-		c.Abort()
+		c.Next()
 	}
 }
+
+// PermissionProtected protects with permission validation
 func (mw *Auth) PermissionProtected(resource models.PermissionResource, actions []models.PermissionAction) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		rp := replylib.Client.New(adapter.AdaptGin(c))
 		ctx := c.Request.Context()
 
-		var role string
-		uID, _ := c.Get("userID")
-		userID, _ := uID.(string)
-		if r, exists := c.Get("role"); exists {
-			role, _ = r.(string)
-		} else {
-			claims, newAccessCookie, newRefreshCookie, err := mw.protected(c)
-			if err != nil {
-				if errors.Is(err, errorlib.ErrNotActivated) {
-					rp.Error(replylib.CodeForbidden, err.Error()).FailJSON()
-				} else {
-					rp.Error(replylib.CodeUnauthorized, err.Error()).FailJSON()
-				}
-				c.Abort()
-				return
-			}
-			mw.applyInternalProtectedReturn(c, rp, claims, newAccessCookie, newRefreshCookie)
-			role = claims.Role
-			userID = claims.UserID
+		// make sure user is authenticated
+		if !mw.ensureAuthenticated(c, rp, false) {
+			return
 		}
 
+		userIDInterface, _ := c.Get("userID")
+		userID, _ := userIDInterface.(string)
+		roleInterface, _ := c.Get("role")
+		role, _ := roleInterface.(string)
+
+		// validate role is admin
 		if role != string(models.RoleAdmin) {
 			rp.Error(replylib.CodeForbidden, "invalid role, only admin can access this resource").FailJSON()
 			c.Abort()
 			return
 		}
 
+		// get and set user with permissions
 		user, err := mw.userRepo.GetFirstWithPreload(ctx, []string{"AdminProfile.Permissions"}, "id = ? AND role = ?", userID, models.RoleAdmin)
 		if err != nil {
 			errPayload := errorlib.MakeNotFound(err, "your user profile not found", []string{})
@@ -208,13 +204,16 @@ func (mw *Auth) PermissionProtected(resource models.PermissionResource, actions 
 		}
 		c.Set("user", user)
 
+		// action tracks
 		requiredActions := make(map[models.PermissionAction]bool, len(actions))
 		for _, a := range actions {
 			requiredActions[a] = false
 		}
 
+		// validate permissions
 		for _, perm := range user.AdminProfile.Permissions {
 			if perm.Resource == resource {
+				// set action to true if protected resource's action exists
 				for _, act := range perm.Actions {
 					if _, exists := requiredActions[act]; exists {
 						requiredActions[act] = true
@@ -223,6 +222,7 @@ func (mw *Auth) PermissionProtected(resource models.PermissionResource, actions 
 			}
 		}
 
+		// validate is permitted
 		for action, found := range requiredActions {
 			if !found {
 				rp.Error(replylib.CodeForbidden, fmt.Sprintf("missing permission: %s.%s", resource, action)).FailJSON()

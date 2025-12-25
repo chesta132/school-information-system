@@ -17,7 +17,7 @@ func (rt *Route) RegisterAdmin(group *gin.RouterGroup) {
 	adminService := services.NewAdmin(userRepo, adminRepo)
 
 	handler := handlers.NewAdmin(adminService)
-	mw := middlewares.NewAuth(revokedRepo)
+	mw := middlewares.NewAuth(userRepo, revokedRepo)
 
 	group.POST("/initiate", mw.Protected(true), handler.InitiateAdmin)
 }
