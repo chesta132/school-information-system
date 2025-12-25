@@ -1,4 +1,3 @@
-
 package middlewares
 
 import (
@@ -199,6 +198,11 @@ func (mw *Auth) PermissionProtected(resource models.PermissionResource, actions 
 		if err != nil {
 			errPayload := errorlib.MakeNotFound(err, "your user profile not found", []string{})
 			rp.Error(errPayload.Code, errPayload.Message).FailJSON()
+			c.Abort()
+			return
+		}
+		if user.AdminProfile == nil || user.AdminProfile.Permissions == nil {
+			rp.Error(replylib.CodeConflict, "your admin profile or permission not registered").FailJSON()
 			c.Abort()
 			return
 		}
