@@ -138,9 +138,17 @@ func (s *ContextedAdmin) SetRole(payload payloads.RequestSetRole) (*models.User,
 		teacher, err := s.setRoleTeacher(payload, user)
 		user.TeacherProfile = teacher
 		return &user, err
+	case models.RoleAdmin:
+		var payload payloads.RequestSetRoleAdmin
+		if err := s.c.ShouldBindJSON(&payload); err != nil {
+			return nil, &reply.ErrorPayload{Code: replylib.CodeBadRequest, Message: err.Error()}
+		}
+		admin, err := s.setRoleAdmin(payload, user)
+		user.AdminProfile = admin
+		return &user, err
 	}
 
-	return nil, nil
+	return nil, &reply.ErrorPayload{Code: replylib.CodeBadRequest, Message: "invalid target role", Fields: []string{"target_role"}}
 }
 
 func (s *ContextedAdmin) setRoleStudent(payload payloads.RequestSetRoleStudent, user models.User) (student *models.Student, errPayload *reply.ErrorPayload) {
@@ -249,6 +257,40 @@ func (s *ContextedAdmin) setRoleTeacher(payload payloads.RequestSetRoleTeacher, 
 			errPayload = errorlib.MakeServerError(err)
 		}
 		return err
+	})
+	return
+}
+
+func (s *ContextedAdmin) setRoleAdmin(payload payloads.RequestSetRoleAdmin, user models.User) (admin *models.Admin, errPayload *reply.ErrorPayload) {
+	// validate payload
+	if errPayload := validatorlib.ValidateStructToReply(payload); errPayload != nil {
+		return nil, errPayload
+	}
+	s.adminRepo.DB().Transaction(func(tx *gorm.DB) error {
+		adminRepo := s.adminRepo.WithTx(tx)
+
+		adminExist, err := adminRepo.Exists(s.ctx, "employee_id = ?", payload.EmployeeID)
+		if err != nil {
+			errPayload = errorlib.MakeServerError(err)
+			return err
+		}
+		if adminExist {
+			err := errors.New("other admin with same employee id already exist")
+			errPayload = &reply.ErrorPayload{
+				Code:    replylib.CodeConflict,
+				Message: err.Error(),
+				Fields:  []string{"employee_id"},
+			}
+			return err
+		}
+
+		admin = &models.Admin{
+			StaffRole:  payload.StaffRole,
+			EmployeeID: payload.EmployeeID,
+			JoinedAt:   payload.JoinedAt,
+			UserID:     user.ID,
+		}
+		return adminRepo.Create(s.ctx, admin)
 	})
 	return
 }
