@@ -55,7 +55,7 @@ func (r *read[T]) GetByIDs(ctx context.Context, ids []string) ([]T, error) {
 func (r *read[T]) GetFirstWithPreload(ctx context.Context, preloads []string, where any, args ...any) (T, error) {
 	q := gorm.G[T](r.db).Where(where, args...)
 	for _, p := range preloads {
-		q.Preload(p, nil)
+		q = q.Preload(p, nil)
 	}
 	return q.First(ctx)
 }
