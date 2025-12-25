@@ -1,9 +1,8 @@
 package handlers
 
 import (
-	"fmt"
 	"school-information-system/internal/libs/replylib"
-	"school-information-system/internal/models/payload"
+	"school-information-system/internal/models/payloads"
 	"school-information-system/internal/services"
 
 	adapter "github.com/chesta132/goreply/adapter/gin"
@@ -21,7 +20,7 @@ func NewAuth(authService *services.Auth) *Auth {
 
 func (h *Auth) SignUp(c *gin.Context) {
 	rp := replylib.Client.New(adapter.AdaptGin(c))
-	var payload payload.RequestSignUp
+	var payload payloads.RequestSignUp
 	if err := c.ShouldBindJSON(&payload); err != nil {
 		rp.Error(replylib.CodeBadRequest, err.Error()).FailJSON()
 		return
@@ -38,7 +37,7 @@ func (h *Auth) SignUp(c *gin.Context) {
 
 func (h *Auth) SignIn(c *gin.Context) {
 	rp := replylib.Client.New(adapter.AdaptGin(c))
-	var payload payload.RequestSignIn
+	var payload payloads.RequestSignIn
 	if err := c.ShouldBindJSON(&payload); err != nil {
 		rp.Error(replylib.CodeBadRequest, err.Error()).FailJSON()
 		return
@@ -57,20 +56,4 @@ func (h *Auth) SignOut(c *gin.Context) {
 	rp := replylib.Client.New(adapter.AdaptGin(c))
 	cookies := h.authService.ApplyContext(c).SignOut()
 	rp.SetCookies(cookies...).Success(nil).OkJSON()
-}
-
-func (h *Auth) InitiateAdmin(c *gin.Context) {
-	rp := replylib.Client.New(adapter.AdaptGin(c))
-	var payload payload.RequestInitiateAdmin
-	if err := c.ShouldBindJSON(&payload); err != nil {
-		rp.Error(replylib.CodeBadRequest, err.Error()).FailJSON()
-		return
-	}
-	user, errPayload := h.authService.ApplyContext(c).InitiateAdmin(payload)
-	if errPayload != nil {
-		rp.Error(errPayload.Code, errPayload.Message, reply.OptErrorPayload{Details: errPayload.Details, Fields: errPayload.Fields}).FailJSON()
-		return
-	}
-
-	rp.Success(user).Info(fmt.Sprintf("Admin created: %s (%s)", user.FullName, payload.StaffRole)).OkJSON()
 }

@@ -5,13 +5,12 @@ import (
 	"errors"
 	"net/http"
 	"school-information-system/config"
-	"school-information-system/database/seeds"
 	"school-information-system/internal/libs/authlib"
 	"school-information-system/internal/libs/phonelib"
 	"school-information-system/internal/libs/replylib"
 	"school-information-system/internal/libs/validatorlib"
 	"school-information-system/internal/models"
-	"school-information-system/internal/models/payload"
+	"school-information-system/internal/models/payloads"
 	"school-information-system/internal/repos"
 
 	"github.com/chesta132/goreply/reply"
@@ -22,7 +21,6 @@ import (
 type Auth struct {
 	userRepo    *repos.User
 	revokedRepo *repos.Revoked
-	adminRepo   *repos.Admin
 }
 
 type ContextedAuth struct {
@@ -31,15 +29,15 @@ type ContextedAuth struct {
 	ctx context.Context
 }
 
-func NewAuth(userRepo *repos.User, revokedRepo *repos.Revoked, adminRepo *repos.Admin) *Auth {
-	return &Auth{userRepo, revokedRepo, adminRepo}
+func NewAuth(userRepo *repos.User, revokedRepo *repos.Revoked) *Auth {
+	return &Auth{userRepo, revokedRepo}
 }
 
 func (s *Auth) ApplyContext(c *gin.Context) *ContextedAuth {
 	return &ContextedAuth{s, c, c.Request.Context()}
 }
 
-func (s *ContextedAuth) SignUp(payload payload.RequestSignUp) (*models.User, []http.Cookie, *reply.ErrorPayload) {
+func (s *ContextedAuth) SignUp(payload payloads.RequestSignUp) (*models.User, []http.Cookie, *reply.ErrorPayload) {
 	// validate payload
 	if errPayload := validatorlib.ValidateStructToReply(payload); errPayload != nil {
 		return nil, nil, errPayload
@@ -104,7 +102,7 @@ func (s *ContextedAuth) SignUp(payload payload.RequestSignUp) (*models.User, []h
 	return newUser, []http.Cookie{access, refresh}, nil
 }
 
-func (s *ContextedAuth) SignIn(payload payload.RequestSignIn) (*models.User, []http.Cookie, *reply.ErrorPayload) {
+func (s *ContextedAuth) SignIn(payload payloads.RequestSignIn) (*models.User, []http.Cookie, *reply.ErrorPayload) {
 	// validate payload
 	if errPayload := validatorlib.ValidateStructToReply(payload); errPayload != nil {
 		return nil, nil, errPayload
@@ -151,81 +149,4 @@ func (s *ContextedAuth) SignOut() []http.Cookie {
 	acccessCookie := authlib.Invalidate(config.ACCESS_TOKEN_KEY)
 	refreshCookie := authlib.Invalidate(config.REFRESH_TOKEN_KEY)
 	return []http.Cookie{acccessCookie, refreshCookie}
-}
-
-func (s *ContextedAuth) InitiateAdmin(payload payload.RequestInitiateAdmin) (*models.User, *reply.ErrorPayload) {
-	// validate payload
-	if errPayload := validatorlib.ValidateStructToReply(payload); errPayload != nil {
-		return nil, errPayload
-	}
-
-	// get and check if targeted user exist
-	user, err := s.userRepo.GetByID(s.ctx, payload.TargetID)
-	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, &reply.ErrorPayload{
-				Code:    replylib.CodeNotFound,
-				Message: "user with targeted id doesn't exist",
-				Fields:  []string{"target_id"},
-			}
-		}
-		return nil, &reply.ErrorPayload{
-			Code:    replylib.CodeServerError,
-			Message: err.Error(),
-		}
-	}
-
-	// check is any other admin exist
-	if exists, err := s.adminRepo.Exists(s.ctx, "1 = 1"); err != nil {
-		return nil, &reply.ErrorPayload{
-			Code:    replylib.CodeServerError,
-			Message: err.Error(),
-		}
-	} else if exists {
-		return nil, &replylib.ErrAdminExist
-	}
-
-	// validate key
-	if payload.Key != config.INITIATE_ADMIN_KEY {
-		return nil, &replylib.ErrIncorrectKey
-	}
-
-	// transaction to rollback if error
-	admin, err := s.initiateAdminInTx(payload, user)
-	if err != nil {
-		return nil, &reply.ErrorPayload{
-			Code:    replylib.CodeServerError,
-			Message: err.Error(),
-		}
-	}
-
-	user.AdminProfile = admin
-	return &user, nil
-}
-
-func (s *ContextedAuth) initiateAdminInTx(payload payload.RequestInitiateAdmin, user models.User) (admin *models.Admin, err error) {
-	err = s.userRepo.DB().Transaction(func(tx *gorm.DB) error {
-		userRepo := s.userRepo.WithTx(tx)
-		adminRepo := s.adminRepo.WithTx(tx)
-
-		// update role
-		err := userRepo.UpdateByID(s.ctx, user.ID, models.User{Role: models.RoleAdmin})
-		if err != nil {
-			return err
-		}
-
-		// create admin with permission seeds
-		admin = &models.Admin{
-			StaffRole:  payload.StaffRole,
-			EmployeeID: payload.EmployeeID,
-			UserID:     user.ID,
-			JoinedAt:   payload.JoinedAt,
-		}
-		err = adminRepo.Create(s.ctx, admin)
-		if err != nil {
-			return err
-		}
-		return tx.Model(admin).Association("Permissions").Append(&seeds.PermissionSeeds)
-	})
-	return
 }

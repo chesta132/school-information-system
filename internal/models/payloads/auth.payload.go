@@ -1,8 +1,7 @@
-package payload
+package payloads
 
 import (
 	"school-information-system/internal/models"
-	"time"
 )
 
 type RequestSignUp struct {
@@ -18,12 +17,4 @@ type RequestSignIn struct {
 	Email      string `json:"email" validate:"required,email"`
 	Password   string `json:"password" validate:"required"`
 	RememberMe bool   `json:"remember_me"`
-}
-
-type RequestInitiateAdmin struct {
-	Key        string    `json:"key" validate:"required"`
-	TargetID   string    `json:"target_id" validate:"required"`
-	StaffRole  string    `json:"staff_role" validate:"required"`
-	EmployeeID string    `json:"employee_id" validate:"required"`
-	JoinedAt   time.Time `json:"joined_at" validate:"required"`
 }
