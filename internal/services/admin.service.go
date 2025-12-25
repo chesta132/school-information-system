@@ -3,6 +3,7 @@ package services
 import (
 	"context"
 	"errors"
+	"fmt"
 	"school-information-system/config"
 	"school-information-system/database/seeds"
 	"school-information-system/internal/libs/errorlib"
@@ -23,6 +24,8 @@ type Admin struct {
 	studentRepo *repos.Student
 	classRepo   *repos.Class
 	parentRepo  *repos.Parent
+	teacherRepo *repos.Teacher
+	subjectRepo *repos.Subject
 }
 
 type ContextedAdmin struct {
@@ -31,8 +34,8 @@ type ContextedAdmin struct {
 	ctx context.Context
 }
 
-func NewAdmin(userRepo *repos.User, adminRepo *repos.Admin, studentRepo *repos.Student, classRepo *repos.Class, parentRepo *repos.Parent) *Admin {
-	return &Admin{userRepo, adminRepo, studentRepo, classRepo, parentRepo}
+func NewAdmin(userRepo *repos.User, adminRepo *repos.Admin, studentRepo *repos.Student, classRepo *repos.Class, parentRepo *repos.Parent, teacherRepo *repos.Teacher, subjectRepo *repos.Subject) *Admin {
+	return &Admin{userRepo, adminRepo, studentRepo, classRepo, parentRepo, teacherRepo, subjectRepo}
 }
 
 func (s *Admin) ApplyContext(c *gin.Context) *ContextedAdmin {
@@ -127,6 +130,14 @@ func (s *ContextedAdmin) SetRole(payload payloads.RequestSetRole) (*models.User,
 		stud, err := s.setRoleStudent(payload, user)
 		user.StudentProfile = stud
 		return &user, err
+	case models.RoleTeacher:
+		var payload payloads.RequestSetRoleTeacher
+		if err := s.c.ShouldBindJSON(&payload); err != nil {
+			return nil, &reply.ErrorPayload{Code: replylib.CodeBadRequest, Message: err.Error()}
+		}
+		teacher, err := s.setRoleTeacher(payload, user)
+		user.TeacherProfile = teacher
+		return &user, err
 	}
 
 	return nil, nil
@@ -165,7 +176,7 @@ func (s *ContextedAdmin) setRoleStudent(payload payloads.RequestSetRoleStudent, 
 
 		student = &models.Student{
 			NISN:    payload.NISN,
-			UserID:  payload.TargetID,
+			UserID:  user.ID,
 			ClassID: payload.ClassID,
 		}
 
@@ -176,6 +187,64 @@ func (s *ContextedAdmin) setRoleStudent(payload payloads.RequestSetRoleStudent, 
 		}
 
 		err = tx.Model(student).Association("Parents").Append(parents)
+		if err != nil {
+			errPayload = errorlib.MakeServerError(err)
+		}
+		return err
+	})
+	return
+}
+
+func (s *ContextedAdmin) setRoleTeacher(payload payloads.RequestSetRoleTeacher, user models.User) (teacher *models.Teacher, errPayload *reply.ErrorPayload) {
+	// validate payload
+	if errPayload := validatorlib.ValidateStructToReply(payload); errPayload != nil {
+		return nil, errPayload
+	}
+
+	s.adminRepo.DB().Transaction(func(tx *gorm.DB) error {
+		subjectRepo := s.subjectRepo.WithTx(tx)
+		teacherRepo := s.teacherRepo.WithTx(tx)
+
+		subjects, err := subjectRepo.GetByIDs(s.ctx, payload.SubjectIDs)
+		if err != nil {
+			errPayload = errorlib.MakeServerError(err)
+			return err
+		}
+		if subjectIDsLen, subjectsLen := len(payload.SubjectIDs), len(subjects); subjectIDsLen > subjectsLen {
+			notFound := subjectIDsLen - subjectsLen
+			err := fmt.Errorf("%d subject(s) not found", notFound)
+			errPayload = errorlib.MakeNotFound(gorm.ErrRecordNotFound, err.Error(), []string{"subject_ids"})
+			return err
+		}
+
+		teacherExist, err := teacherRepo.Exists(s.ctx, "nuptk = ? OR employee_id = ?", payload.NUPTK, payload.EmployeeID)
+		if err != nil {
+			errPayload = errorlib.MakeServerError(err)
+			return err
+		}
+		if teacherExist {
+			err := errors.New("other teacher with same NUTPK or employee id already exist")
+			errPayload = &reply.ErrorPayload{
+				Code:    replylib.CodeConflict,
+				Message: err.Error(),
+				Fields:  []string{"nuptk", "employee_id"},
+			}
+			return err
+		}
+
+		teacher = &models.Teacher{
+			NUPTK:      payload.NUPTK,
+			EmployeeID: payload.EmployeeID,
+			JoinedAt:   payload.JoinedAt,
+			UserID:     user.ID,
+		}
+		err = teacherRepo.Create(s.ctx, teacher)
+		if err != nil {
+			errPayload = errorlib.MakeServerError(err)
+			return err
+		}
+
+		err = tx.Model(teacher).Association("Subjects").Append(subjects)
 		if err != nil {
 			errPayload = errorlib.MakeServerError(err)
 		}
