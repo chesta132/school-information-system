@@ -42,7 +42,13 @@ func (s *RoleSetter) ApplyContext(c *gin.Context) *ContextedRoleSetter {
 
 func (s *ContextedRoleSetter) SetRole(payload payloads.RequestSetRole) (*models.User, *reply.ErrorPayload) {
 	// validate payload
-	if errPayload := validatorlib.ValidateStructToReply(payload); errPayload != nil {
+	prefixMap := map[models.UserRole]string{
+		models.RoleAdmin:   "admin_data.",
+		models.RoleStudent: "student_data.",
+		models.RoleTeacher: "teacher_data.",
+	}
+	prefix, _ := prefixMap[payload.TargetRole]
+	if errPayload := validatorlib.ValidateStructToReply(payload, prefix); errPayload != nil {
 		return nil, errPayload
 	}
 
@@ -53,33 +59,21 @@ func (s *ContextedRoleSetter) SetRole(payload payloads.RequestSetRole) (*models.
 	}
 
 	switch payload.TargetRole {
+	// set role student
 	case models.RoleStudent:
-		// set role student
-		var payload payloads.RequestSetRoleStudent
-		if err := s.c.ShouldBindJSON(&payload); err != nil {
-			return nil, &reply.ErrorPayload{Code: replylib.CodeBadRequest, Message: err.Error()}
-		}
-		stud, err := s.setRoleStudent(payload, user)
+		stud, err := s.setRoleStudent(*payload.StudentData, user)
 		user.StudentProfile = stud
 		return &user, err
 
 		// set role teacher
 	case models.RoleTeacher:
-		var payload payloads.RequestSetRoleTeacher
-		if err := s.c.ShouldBindJSON(&payload); err != nil {
-			return nil, &reply.ErrorPayload{Code: replylib.CodeBadRequest, Message: err.Error()}
-		}
-		teacher, err := s.setRoleTeacher(payload, user)
+		teacher, err := s.setRoleTeacher(*payload.TeacherData, user)
 		user.TeacherProfile = teacher
 		return &user, err
 
 		// set role admin
 	case models.RoleAdmin:
-		var payload payloads.RequestSetRoleAdmin
-		if err := s.c.ShouldBindJSON(&payload); err != nil {
-			return nil, &reply.ErrorPayload{Code: replylib.CodeBadRequest, Message: err.Error()}
-		}
-		admin, err := s.setRoleAdmin(payload, user)
+		admin, err := s.setRoleAdmin(*payload.AdminData, user)
 		user.AdminProfile = admin
 		return &user, err
 	}
