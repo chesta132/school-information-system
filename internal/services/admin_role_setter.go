@@ -42,13 +42,7 @@ func (s *RoleSetter) ApplyContext(c *gin.Context) *ContextedRoleSetter {
 
 func (s *ContextedRoleSetter) SetRole(payload payloads.RequestSetRole) (*models.User, *reply.ErrorPayload) {
 	// validate payload
-	prefixMap := map[models.UserRole]string{
-		models.RoleAdmin:   "admin_data.",
-		models.RoleStudent: "student_data.",
-		models.RoleTeacher: "teacher_data.",
-	}
-	prefix, _ := prefixMap[payload.TargetRole]
-	if errPayload := validatorlib.ValidateStructToReply(payload, prefix); errPayload != nil {
+	if errPayload := validatorlib.ValidateStructToReply(payload); errPayload != nil {
 		return nil, errPayload
 	}
 

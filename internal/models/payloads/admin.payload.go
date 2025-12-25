@@ -17,9 +17,9 @@ type RequestSetRole struct {
 	TargetID   string          `json:"target_id" validate:"required"`
 	TargetRole models.UserRole `json:"target_role" validate:"required,oneof=student teacher admin"`
 
-	StudentData *RequestSetRoleStudent `json:"student_data" validate:"required_if=TargetRole student"`
-	TeacherData *RequestSetRoleTeacher `json:"teacher_data" validate:"required_if=TargetRole teacher"`
-	AdminData   *RequestSetRoleAdmin   `json:"admin_data" validate:"required_if=TargetRole admin"`
+	StudentData *RequestSetRoleStudent `json:"student_data" prefix:"student_data." validate:"required_if=TargetRole student"`
+	TeacherData *RequestSetRoleTeacher `json:"teacher_data" prefix:"teacher_data." validate:"required_if=TargetRole teacher"`
+	AdminData   *RequestSetRoleAdmin   `json:"admin_data" prefix:"admin_data." validate:"required_if=TargetRole admin"`
 }
 
 type RequestSetRoleStudent struct {
