@@ -2,6 +2,7 @@ package services
 
 import (
 	"context"
+	"errors"
 	"school-information-system/config"
 	"school-information-system/database/seeds"
 	"school-information-system/internal/libs/errorlib"
@@ -17,8 +18,11 @@ import (
 )
 
 type Admin struct {
-	userRepo  *repos.User
-	adminRepo *repos.Admin
+	userRepo    *repos.User
+	adminRepo   *repos.Admin
+	studentRepo *repos.Student
+	classRepo   *repos.Class
+	parentRepo  *repos.Parent
 }
 
 type ContextedAdmin struct {
@@ -27,8 +31,8 @@ type ContextedAdmin struct {
 	ctx context.Context
 }
 
-func NewAdmin(userRepo *repos.User, adminRepo *repos.Admin) *Admin {
-	return &Admin{userRepo, adminRepo}
+func NewAdmin(userRepo *repos.User, adminRepo *repos.Admin, studentRepo *repos.Student, classRepo *repos.Class, parentRepo *repos.Parent) *Admin {
+	return &Admin{userRepo, adminRepo, studentRepo, classRepo, parentRepo}
 }
 
 func (s *Admin) ApplyContext(c *gin.Context) *ContextedAdmin {
@@ -98,6 +102,84 @@ func (s *ContextedAdmin) initiateAdminInTx(payload payloads.RequestInitiateAdmin
 			return err
 		}
 		return tx.Model(admin).Association("Permissions").Append(&seeds.PermissionSeeds)
+	})
+	return
+}
+
+func (s *ContextedAdmin) SetRole(payload payloads.RequestSetRole) (*models.User, *reply.ErrorPayload) {
+	// validate payload
+	if errPayload := validatorlib.ValidateStructToReply(payload); errPayload != nil {
+		return nil, errPayload
+	}
+
+	// get and check user
+	user, err := s.userRepo.GetByID(s.ctx, payload.TargetID)
+	if err != nil {
+		return nil, errorlib.MakeUserByTargetIDNotFound(err)
+	}
+
+	switch payload.TargetRole {
+	case models.RoleStudent:
+		var payload payloads.RequestSetRoleStudent
+		if err := s.c.ShouldBindJSON(&payload); err != nil {
+			return nil, &reply.ErrorPayload{Code: replylib.CodeBadRequest, Message: err.Error()}
+		}
+		stud, err := s.setRoleStudent(payload, user)
+		user.StudentProfile = stud
+		return &user, err
+	}
+
+	return nil, nil
+}
+
+func (s *ContextedAdmin) setRoleStudent(payload payloads.RequestSetRoleStudent, user models.User) (student *models.Student, errPayload *reply.ErrorPayload) {
+	// validate payload
+	if errPayload := validatorlib.ValidateStructToReply(payload); errPayload != nil {
+		return nil, errPayload
+	}
+
+	s.adminRepo.DB().Transaction(func(tx *gorm.DB) error {
+		classRepo := s.classRepo.WithTx(tx)
+		parentRepo := s.parentRepo.WithTx(tx)
+		studentRepo := s.studentRepo.WithTx(tx)
+
+		classExists, err := classRepo.Exists(s.ctx, "id = ?", payload.ClassID)
+		if err != nil {
+			errPayload = errorlib.MakeServerError(err)
+			return err
+		}
+		if !classExists {
+			errPayload = errorlib.MakeNotFound(gorm.ErrRecordNotFound, "class not found", []string{"class_id"})
+			return gorm.ErrRecordNotFound
+		}
+
+		parents, err := parentRepo.GetByIDs(s.ctx, payload.ParentIDs)
+		if err != nil {
+			errPayload = errorlib.MakeServerError(err)
+			return err
+		}
+		if len(parents) != 2 {
+			errPayload = &reply.ErrorPayload{Code: replylib.CodeConflict, Message: "existing parents must be 2"}
+			return errors.New("found parent is not 2")
+		}
+
+		student = &models.Student{
+			NISN:    payload.NISN,
+			UserID:  payload.TargetID,
+			ClassID: payload.ClassID,
+		}
+
+		err = studentRepo.Create(s.ctx, student)
+		if err != nil {
+			errPayload = errorlib.MakeServerError(err)
+			return err
+		}
+
+		err = tx.Model(student).Association("Parents").Append(parents)
+		if err != nil {
+			errPayload = errorlib.MakeServerError(err)
+		}
+		return err
 	})
 	return
 }

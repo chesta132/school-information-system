@@ -21,3 +21,24 @@ func MakeUserByTargetIDNotFound(err error) *reply.ErrorPayload {
 		Message: err.Error(),
 	}
 }
+
+func MakeNotFound(err error, message string, fields []string) *reply.ErrorPayload {
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return &reply.ErrorPayload{
+			Code:    replylib.CodeNotFound,
+			Message: message,
+			Fields:  fields,
+		}
+	}
+	return &reply.ErrorPayload{
+		Code:    replylib.CodeServerError,
+		Message: err.Error(),
+	}
+}
+
+func MakeServerError(err error) *reply.ErrorPayload {
+	return &reply.ErrorPayload{
+		Code:    replylib.CodeServerError,
+		Message: err.Error(),
+	}
+}
