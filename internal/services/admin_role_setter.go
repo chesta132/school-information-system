@@ -83,6 +83,7 @@ func (s *ContextedRoleSetter) setRoleStudent(payload payloads.RequestSetRoleStud
 
 	// transaction to rollback if error
 	s.adminRepo.DB().Transaction(func(tx *gorm.DB) error {
+		userRepo := s.userRepo.WithTx(tx)
 		classRepo := s.classRepo.WithTx(tx)
 		parentRepo := s.parentRepo.WithTx(tx)
 		studentRepo := s.studentRepo.WithTx(tx)
@@ -107,6 +108,14 @@ func (s *ContextedRoleSetter) setRoleStudent(payload payloads.RequestSetRoleStud
 		if len(parents) != 2 {
 			errPayload = &reply.ErrorPayload{Code: replylib.CodeConflict, Message: "existing parents must be 2"}
 			return errors.New("found parent is not 2")
+		}
+
+		// set role
+		user.Role = models.RoleStudent
+		err = userRepo.Update(s.ctx, models.User{Role: models.RoleStudent}, "id = ?", user.ID)
+		if err != nil {
+			errPayload = errorlib.MakeServerError(err)
+			return err
 		}
 
 		// create student
@@ -139,6 +148,7 @@ func (s *ContextedRoleSetter) setRoleTeacher(payload payloads.RequestSetRoleTeac
 
 	// transaction to rollback if error
 	s.adminRepo.DB().Transaction(func(tx *gorm.DB) error {
+		userRepo := s.userRepo.WithTx(tx)
 		subjectRepo := s.subjectRepo.WithTx(tx)
 		teacherRepo := s.teacherRepo.WithTx(tx)
 
@@ -168,6 +178,14 @@ func (s *ContextedRoleSetter) setRoleTeacher(payload payloads.RequestSetRoleTeac
 				Message: err.Error(),
 				Fields:  []string{"nuptk", "employee_id"},
 			}
+			return err
+		}
+
+		// set role
+		user.Role = models.RoleTeacher
+		err = userRepo.Update(s.ctx, models.User{Role: models.RoleTeacher}, "id = ?", user.ID)
+		if err != nil {
+			errPayload = errorlib.MakeServerError(err)
 			return err
 		}
 
@@ -202,6 +220,7 @@ func (s *ContextedRoleSetter) setRoleAdmin(payload payloads.RequestSetRoleAdmin,
 
 	// transaction to rollback if error
 	s.adminRepo.DB().Transaction(func(tx *gorm.DB) error {
+		userRepo := s.userRepo.WithTx(tx)
 		adminRepo := s.adminRepo.WithTx(tx)
 
 		// check is unique conflict
@@ -217,6 +236,14 @@ func (s *ContextedRoleSetter) setRoleAdmin(payload payloads.RequestSetRoleAdmin,
 				Message: err.Error(),
 				Fields:  []string{"employee_id"},
 			}
+			return err
+		}
+
+		// set role
+		user.Role = models.RoleAdmin
+		err = userRepo.Update(s.ctx, models.User{Role: models.RoleAdmin}, "id = ?", user.ID)
+		if err != nil {
+			errPayload = errorlib.MakeServerError(err)
 			return err
 		}
 
