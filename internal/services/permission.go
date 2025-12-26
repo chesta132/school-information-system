@@ -40,11 +40,17 @@ func (s *ContextedPermission) GrantPermission(payload payloads.RequestGrantPermi
 
 	// transaction to rollback if error
 	s.userRepo.DB().Transaction(func(tx *gorm.DB) error {
-		userRepo := s.userRepo.WithTx(tx)
 		permissionRepo := s.permissionRepo.WithTx(tx)
 
 		// get user and validate
-		u, err := userRepo.GetFirstWithPreload(s.ctx, []string{"AdminProfile"}, "id = ?", payload.TargetID)
+		u, err := gorm.G[models.User](tx).
+			Preload("AdminProfile", nil).
+			Preload("AdminProfile.Permissions", func(db gorm.PreloadBuilder) error {
+				db.Where("id = ?", payload.PermissionID).Select("id").Limit(1)
+				return nil
+			}).
+			Where("id = ?", payload.TargetID).
+			First(s.ctx)
 		if err != nil {
 			errPayload = errorlib.MakeUserByTargetIDNotFound(err)
 			return err
@@ -52,6 +58,10 @@ func (s *ContextedPermission) GrantPermission(payload payloads.RequestGrantPermi
 		if u.AdminProfile == nil || u.Role != models.RoleAdmin {
 			errPayload = &reply.ErrorPayload{Code: replylib.CodeUnprocessableEntity, Message: errorlib.ErrTargetInvalidRole.Error()}
 			return errorlib.ErrTargetInvalidRole
+		}
+		if len(u.AdminProfile.Permissions) > 0 {
+			errPayload = &reply.ErrorPayload{Code: replylib.CodeConflict, Message: errorlib.ErrTargetHavePermission.Error()}
+			return errorlib.ErrTargetHavePermission
 		}
 		user = &u
 
