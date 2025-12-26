@@ -28,7 +28,7 @@ func (rt *Route) RegisterAdmin(group *gin.RouterGroup) {
 
 	group.Use(mw.RoleProtected(models.RoleAdmin))
 
-	group.POST(
+	group.PUT(
 		"/set-role",
 		mw.PermissionProtected(models.ResourceRole, []models.PermissionAction{models.ActionRead, models.ActionUpdate}),
 		handler.SetRole,

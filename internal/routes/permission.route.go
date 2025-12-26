@@ -16,11 +16,11 @@ func (rt *Route) RegisterPermission(group *gin.RouterGroup) {
 
 	mw := middlewares.NewAuth(rt.rp.User(), rt.rp.Revoked())
 
-	group.POST("/grant", mw.PermissionProtected(
+	group.PUT("/grant", mw.PermissionProtected(
 		models.ResourcePermission,
 		[]models.PermissionAction{models.ActionUpdate},
 	), handler.GrantPermission)
-	group.POST("/revoke", mw.PermissionProtected(
+	group.DELETE("/revoke", mw.PermissionProtected(
 		models.ResourcePermission,
 		[]models.PermissionAction{models.ActionUpdate},
 	), handler.RevokePermission)
