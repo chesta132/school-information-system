@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"school-information-system/config"
+	"school-information-system/database/seeds"
 	"school-information-system/internal/libs/errorlib"
 	"school-information-system/internal/libs/replylib"
 	"school-information-system/internal/libs/slicelib"
@@ -144,6 +145,45 @@ func (s *ContextedPermission) GetPermissions(payload payloads.RequestGetPermissi
 	if err != nil {
 		errPayload = errorlib.MakeServerError(err)
 	}
+	return
+}
+
+func (s *ContextedPermission) DeletePermission(permissionID string) (errPayload *reply.ErrorPayload) {
+	s.userRepo.DB().Transaction(func(tx *gorm.DB) error {
+		permissionRepo := s.permissionRepo.WithTx(tx)
+
+		// check if permission is permission seeds
+		for _, perm := range seeds.PermissionSeeds {
+			if perm.ID == permissionID {
+				errPayload = &reply.ErrorPayload{Code: replylib.CodeUnprocessableEntity, Message: "this permission can not be deleted"}
+				return errors.New("can't delete permission seed")
+			}
+		}
+
+		// check is permission have relation with another admin
+		var m2mExist bool
+		err := tx.Raw("SELECT EXISTS (SELECT 1 FROM admin_permissions WHERE permission_id = ? LIMIT 1)", permissionID).Scan(&m2mExist).Error // line 113
+		if err != nil {
+			errPayload = errorlib.MakeServerError(err)
+			return err
+		}
+		if m2mExist {
+			errPayload = &reply.ErrorPayload{Code: replylib.CodeConflict, Message: "permission still granted by other admin(s)"}
+			return errors.New("can't delete granted permission")
+		}
+
+		// delete permission
+		exists, err := permissionRepo.DeleteByID(s.ctx, permissionID)
+		if err != nil {
+			errPayload = errorlib.MakeServerError(err)
+			return err
+		}
+		if !exists {
+			errPayload = &reply.ErrorPayload{Code: replylib.CodeNotFound, Message: "permission not found"}
+			return gorm.ErrRecordNotFound
+		}
+		return nil
+	})
 	return
 }
 

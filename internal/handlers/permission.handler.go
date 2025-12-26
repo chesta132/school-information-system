@@ -69,6 +69,19 @@ func (h *Permission) GetPermissions(c *gin.Context) {
 	rp.Success(perm).PaginateCursor(config.LIMIT_PAGINATED_DATA, payload.Offset).OkJSON()
 }
 
+func (h *Permission) DeletePermission(c *gin.Context) {
+	rp := replylib.Client.New(adapter.AdaptGin(c))
+	id := c.Param("id")
+
+	errPayload := h.permService.ApplyContext(c).DeletePermission(id)
+	if errPayload != nil {
+		rp.Error(errPayload.Code, errPayload.Message, reply.OptErrorPayload{Details: errPayload.Details, Fields: errPayload.Fields}).FailJSON()
+		return
+	}
+
+	rp.Success(map[string]string{"id": id}).OkJSON()
+}
+
 func (h *Permission) GrantPermission(c *gin.Context) {
 	rp := replylib.Client.New(adapter.AdaptGin(c))
 	var payload payloads.RequestGrantPermission

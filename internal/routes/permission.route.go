@@ -28,6 +28,10 @@ func (rt *Route) RegisterPermission(group *gin.RouterGroup) {
 		models.ResourcePermission,
 		[]models.PermissionAction{models.ActionRead},
 	), handler.GetPermissions)
+	group.DELETE("/:id", mw.PermissionProtected(
+		models.ResourcePermission,
+		[]models.PermissionAction{models.ActionDelete},
+	), handler.DeletePermission)
 
 	group.PUT("/grant", mw.PermissionProtected(
 		models.ResourcePermission,
