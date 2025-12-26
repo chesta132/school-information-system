@@ -41,6 +41,19 @@ func (h *Permission) CreatePermission(c *gin.Context) {
 	rp.Success(perm).Info(fmt.Sprintf("new permission to %s %s created", strings.Join(permActs, ", "), perm.Resource)).CreatedJSON()
 }
 
+func (h *Permission) GetPermission(c *gin.Context) {
+	rp := replylib.Client.New(adapter.AdaptGin(c))
+	id := c.Param("id")
+
+	perm, errPayload := h.permService.ApplyContext(c).GetPermission(id)
+	if errPayload != nil {
+		rp.Error(errPayload.Code, errPayload.Message, reply.OptErrorPayload{Details: errPayload.Details, Fields: errPayload.Fields}).FailJSON()
+		return
+	}
+
+	rp.Success(perm).OkJSON()
+}
+
 func (h *Permission) GrantPermission(c *gin.Context) {
 	rp := replylib.Client.New(adapter.AdaptGin(c))
 	var payload payloads.RequestGrantPermission

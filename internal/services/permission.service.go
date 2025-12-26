@@ -96,6 +96,15 @@ func (s *ContextedPermission) CreatePermission(payload payloads.RequestCreatePer
 	return
 }
 
+func (s *ContextedPermission) GetPermission(permissionID string) (permission *models.Permission, errPayload *reply.ErrorPayload) {
+	perm, err := s.permissionRepo.GetByID(s.ctx, permissionID)
+	if err != nil {
+		errPayload = errorlib.MakeNotFound(err, "permission not found", []string{})
+	}
+	permission = &perm
+	return
+}
+
 func (s *ContextedPermission) GrantPermission(payload payloads.RequestGrantPermission) (user *models.User, permission *models.Permission, errPayload *reply.ErrorPayload) {
 	// validate payload
 	if errPayload := validatorlib.ValidateStructToReply(payload); errPayload != nil {
