@@ -16,6 +16,10 @@ func (rt *Route) RegisterPermission(group *gin.RouterGroup) {
 
 	mw := middlewares.NewAuth(rt.rp.User(), rt.rp.Revoked())
 
+	group.POST("/", mw.PermissionProtected(
+		models.ResourcePermission,
+		[]models.PermissionAction{models.ActionCreate},
+	), handler.CreatePermission)
 	group.PUT("/grant", mw.PermissionProtected(
 		models.ResourcePermission,
 		[]models.PermissionAction{models.ActionUpdate},

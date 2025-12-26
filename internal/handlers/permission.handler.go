@@ -22,6 +22,25 @@ func NewPermission(permService *services.Permission) *Permission {
 	return &Permission{permService}
 }
 
+func (h *Permission) CreatePermission(c *gin.Context) {
+	rp := replylib.Client.New(adapter.AdaptGin(c))
+	var payload payloads.RequestCreatePermission
+	if err := c.ShouldBindJSON(&payload); err != nil {
+		rp.Error(replylib.CodeBadRequest, err.Error()).FailJSON()
+		return
+	}
+
+	perm, errPayload := h.permService.ApplyContext(c).CreatePermission(payload)
+	if errPayload != nil {
+		rp.Error(errPayload.Code, errPayload.Message, reply.OptErrorPayload{Details: errPayload.Details, Fields: errPayload.Fields}).FailJSON()
+		return
+	}
+
+	// strings.Join can't process []models.PermissionAction
+	permActs := slicelib.Map(perm.Actions, func(i int, act models.PermissionAction) string { return string(act) })
+	rp.Success(perm).Info(fmt.Sprintf("new permission to %s %s created", strings.Join(permActs, ", "), perm.Resource)).CreatedJSON()
+}
+
 func (h *Permission) GrantPermission(c *gin.Context) {
 	rp := replylib.Client.New(adapter.AdaptGin(c))
 	var payload payloads.RequestGrantPermission

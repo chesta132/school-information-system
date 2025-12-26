@@ -2,8 +2,10 @@ package services
 
 import (
 	"context"
+	"errors"
 	"school-information-system/internal/libs/errorlib"
 	"school-information-system/internal/libs/replylib"
+	"school-information-system/internal/libs/slicelib"
 	"school-information-system/internal/libs/validatorlib"
 	"school-information-system/internal/models"
 	"school-information-system/internal/models/payloads"
@@ -54,6 +56,43 @@ func (s *ContextedPermission) validateAdminAndPermission(ctx context.Context, tx
 			break
 		}
 	}
+	return
+}
+
+func (s *ContextedPermission) CreatePermission(payload payloads.RequestCreatePermission) (permission *models.Permission, errPayload *reply.ErrorPayload) {
+	// validate payload
+	if errPayload := validatorlib.ValidateStructToReply(payload); errPayload != nil {
+		return nil, errPayload
+	}
+
+	s.userRepo.DB().Transaction(func(tx *gorm.DB) error {
+		permissionRepo := s.permissionRepo.WithTx(tx)
+
+		// validate unique
+		if exists, err := permissionRepo.Exists(s.ctx, "name = ?", payload.Name); err != nil {
+			errPayload = errorlib.MakeServerError(err)
+			return err
+		} else if exists {
+			errPayload = &reply.ErrorPayload{Code: replylib.CodeConflict, Message: "permission with this name already exist"}
+			return errors.New("name permission is not unique")
+		}
+
+		// prevent double
+		payload.Actions = slicelib.Unique(payload.Actions)
+
+		// create permission
+		permission = &models.Permission{
+			Name:        payload.Name,
+			Resource:    payload.Resource,
+			Description: payload.Description,
+			Actions:     payload.Actions,
+		}
+		err := permissionRepo.Create(s.ctx, permission)
+		if err != nil {
+			errPayload = errorlib.MakeServerError(err)
+		}
+		return err
+	})
 	return
 }
 
