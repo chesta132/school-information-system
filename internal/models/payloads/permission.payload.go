@@ -18,3 +18,10 @@ type RequestCreatePermission struct {
 	Resource    models.PermissionResource `json:"resource" validate:"required,oneof=role permission"`
 	Actions     []models.PermissionAction `json:"actions" validate:"required,min=1,dive,oneof=create read update delete"`
 }
+
+type RequestGetPermissions struct {
+	Offset    int                         `form:"offset"`
+	Query     string                      `form:"q"`
+	Resources []models.PermissionResource `form:"resource" validate:"dive,oneof=role permission"`
+	Actions   []models.PermissionAction   `form:"action" validate:"dive,oneof=create read update delete"`
+}

@@ -3,6 +3,7 @@ package services
 import (
 	"context"
 	"errors"
+	"school-information-system/config"
 	"school-information-system/internal/libs/errorlib"
 	"school-information-system/internal/libs/replylib"
 	"school-information-system/internal/libs/slicelib"
@@ -10,6 +11,7 @@ import (
 	"school-information-system/internal/models"
 	"school-information-system/internal/models/payloads"
 	"school-information-system/internal/repos"
+	"strings"
 
 	"github.com/chesta132/goreply/reply"
 	"github.com/gin-gonic/gin"
@@ -102,6 +104,46 @@ func (s *ContextedPermission) GetPermission(permissionID string) (permission *mo
 		errPayload = errorlib.MakeNotFound(err, "permission not found", []string{})
 	}
 	permission = &perm
+	return
+}
+
+func (s *ContextedPermission) GetPermissions(payload payloads.RequestGetPermissions) (permissions []models.Permission, errPayload *reply.ErrorPayload) {
+	// validate payload
+	if errPayload = validatorlib.ValidateStructToReply(payload); errPayload != nil {
+		return
+	}
+
+	q := gorm.G[models.Permission](s.userRepo.DB()).Limit(config.LIMIT_PAGINATED_DATA + 1)
+	// action query
+	if len(payload.Actions) > 0 {
+		payload.Actions = slicelib.Unique(payload.Actions)
+		// loop like because actions col is JSON as TEXT
+		// its safe cz payload.Actions already validated
+		orConditions := make([]string, len(payload.Actions))
+		orArgs := make([]any, len(payload.Actions))
+		for i, act := range payload.Actions {
+			orConditions[i] = "actions LIKE ?"
+			orArgs[i] = "%\"" + act + "\"%"
+		}
+		q = q.Where(strings.Join(orConditions, " OR "), orArgs...)
+	}
+	// resource query
+	if len(payload.Resources) > 0 {
+		q = q.Where("resource IN ?", payload.Resources)
+	}
+	// name match query
+	if payload.Query != "" {
+		q = q.Where("LOWER(name) LIKE LOWER(?)", "%"+payload.Query+"%")
+	}
+	// offset query
+	if payload.Offset != 0 {
+		q = q.Offset(payload.Offset)
+	}
+
+	permissions, err := q.Find(s.ctx)
+	if err != nil {
+		errPayload = errorlib.MakeServerError(err)
+	}
 	return
 }
 

@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"fmt"
+	"school-information-system/config"
 	"school-information-system/internal/libs/replylib"
 	"school-information-system/internal/libs/slicelib"
 	"school-information-system/internal/models"
@@ -52,6 +53,20 @@ func (h *Permission) GetPermission(c *gin.Context) {
 	}
 
 	rp.Success(perm).OkJSON()
+}
+
+func (h *Permission) GetPermissions(c *gin.Context) {
+	rp := replylib.Client.New(adapter.AdaptGin(c))
+	var payload payloads.RequestGetPermissions
+	c.ShouldBindQuery(&payload)
+
+	perm, errPayload := h.permService.ApplyContext(c).GetPermissions(payload)
+	if errPayload != nil {
+		rp.Error(errPayload.Code, errPayload.Message, reply.OptErrorPayload{Details: errPayload.Details, Fields: errPayload.Fields}).FailJSON()
+		return
+	}
+
+	rp.Success(perm).PaginateCursor(config.LIMIT_PAGINATED_DATA, payload.Offset).OkJSON()
 }
 
 func (h *Permission) GrantPermission(c *gin.Context) {

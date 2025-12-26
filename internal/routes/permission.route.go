@@ -24,6 +24,10 @@ func (rt *Route) RegisterPermission(group *gin.RouterGroup) {
 		models.ResourcePermission,
 		[]models.PermissionAction{models.ActionRead},
 	), handler.GetPermission)
+	group.GET("/", mw.PermissionProtected(
+		models.ResourcePermission,
+		[]models.PermissionAction{models.ActionRead},
+	), handler.GetPermissions)
 
 	group.PUT("/grant", mw.PermissionProtected(
 		models.ResourcePermission,
