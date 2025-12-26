@@ -11,7 +11,6 @@ import (
 	"strings"
 
 	adapter "github.com/chesta132/goreply/adapter/gin"
-	"github.com/chesta132/goreply/reply"
 	"github.com/gin-gonic/gin"
 )
 
@@ -33,7 +32,7 @@ func (h *Permission) CreatePermission(c *gin.Context) {
 
 	perm, errPayload := h.permService.ApplyContext(c).CreatePermission(payload)
 	if errPayload != nil {
-		rp.Error(errPayload.Code, errPayload.Message, reply.OptErrorPayload{Details: errPayload.Details, Fields: errPayload.Fields}).FailJSON()
+		rp.Error(replylib.ErrorPayloadToArgs(errPayload)).FailJSON()
 		return
 	}
 
@@ -48,7 +47,7 @@ func (h *Permission) GetPermission(c *gin.Context) {
 
 	perm, errPayload := h.permService.ApplyContext(c).GetPermission(id)
 	if errPayload != nil {
-		rp.Error(errPayload.Code, errPayload.Message, reply.OptErrorPayload{Details: errPayload.Details, Fields: errPayload.Fields}).FailJSON()
+		rp.Error(replylib.ErrorPayloadToArgs(errPayload)).FailJSON()
 		return
 	}
 
@@ -62,7 +61,7 @@ func (h *Permission) GetPermissions(c *gin.Context) {
 
 	perm, errPayload := h.permService.ApplyContext(c).GetPermissions(payload)
 	if errPayload != nil {
-		rp.Error(errPayload.Code, errPayload.Message, reply.OptErrorPayload{Details: errPayload.Details, Fields: errPayload.Fields}).FailJSON()
+		rp.Error(replylib.ErrorPayloadToArgs(errPayload)).FailJSON()
 		return
 	}
 
@@ -80,7 +79,7 @@ func (h *Permission) UpdatePermission(c *gin.Context) {
 
 	perm, errPayload := h.permService.ApplyContext(c).UpdatePermission(payload)
 	if errPayload != nil {
-		rp.Error(errPayload.Code, errPayload.Message, reply.OptErrorPayload{Details: errPayload.Details, Fields: errPayload.Fields}).FailJSON()
+		rp.Error(replylib.ErrorPayloadToArgs(errPayload)).FailJSON()
 		return
 	}
 
@@ -93,7 +92,7 @@ func (h *Permission) DeletePermission(c *gin.Context) {
 
 	errPayload := h.permService.ApplyContext(c).DeletePermission(id)
 	if errPayload != nil {
-		rp.Error(errPayload.Code, errPayload.Message, reply.OptErrorPayload{Details: errPayload.Details, Fields: errPayload.Fields}).FailJSON()
+		rp.Error(replylib.ErrorPayloadToArgs(errPayload)).FailJSON()
 		return
 	}
 
@@ -110,7 +109,7 @@ func (h *Permission) GrantPermission(c *gin.Context) {
 
 	user, permission, errPayload := h.permService.ApplyContext(c).GrantPermission(payload)
 	if errPayload != nil {
-		rp.Error(errPayload.Code, errPayload.Message, reply.OptErrorPayload{Details: errPayload.Details, Fields: errPayload.Fields}).FailJSON()
+		rp.Error(replylib.ErrorPayloadToArgs(errPayload)).FailJSON()
 		return
 	}
 
@@ -129,7 +128,7 @@ func (h *Permission) RevokePermission(c *gin.Context) {
 
 	user, permission, errPayload := h.permService.ApplyContext(c).RevokePermission(payload)
 	if errPayload != nil {
-		rp.Error(errPayload.Code, errPayload.Message, reply.OptErrorPayload{Details: errPayload.Details, Fields: errPayload.Fields}).FailJSON()
+		rp.Error(replylib.ErrorPayloadToArgs(errPayload)).FailJSON()
 		return
 	}
 

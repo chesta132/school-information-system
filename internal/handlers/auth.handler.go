@@ -6,7 +6,6 @@ import (
 	"school-information-system/internal/services"
 
 	adapter "github.com/chesta132/goreply/adapter/gin"
-	"github.com/chesta132/goreply/reply"
 	"github.com/gin-gonic/gin"
 )
 
@@ -28,7 +27,7 @@ func (h *Auth) SignUp(c *gin.Context) {
 
 	user, cookies, errPayload := h.authService.ApplyContext(c).SignUp(payload)
 	if errPayload != nil {
-		rp.Error(errPayload.Code, errPayload.Message, reply.OptErrorPayload{Details: errPayload.Details, Fields: errPayload.Fields}).FailJSON()
+		rp.Error(replylib.ErrorPayloadToArgs(errPayload)).FailJSON()
 		return
 	}
 
@@ -45,7 +44,7 @@ func (h *Auth) SignIn(c *gin.Context) {
 
 	user, cookies, errPayload := h.authService.ApplyContext(c).SignIn(payload)
 	if errPayload != nil {
-		rp.Error(errPayload.Code, errPayload.Message, reply.OptErrorPayload{Details: errPayload.Details, Fields: errPayload.Fields}).FailJSON()
+		rp.Error(replylib.ErrorPayloadToArgs(errPayload)).FailJSON()
 		return
 	}
 

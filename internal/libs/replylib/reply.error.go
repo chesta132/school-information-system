@@ -60,3 +60,7 @@ var (
 		Message: "this permission is immutable",
 	}
 )
+
+func ErrorPayloadToArgs(errPayload *reply.ErrorPayload) (code, message string, opt reply.OptErrorPayload) {
+	return errPayload.Code, errPayload.Message, reply.OptErrorPayload{Details: errPayload.Details, Fields: errPayload.Fields}
+}
