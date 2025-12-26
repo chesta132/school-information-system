@@ -25,3 +25,9 @@ type RequestGetPermissions struct {
 	Resources []models.PermissionResource `form:"resource" validate:"dive,oneof=role permission"`
 	Actions   []models.PermissionAction   `form:"action" validate:"dive,oneof=create read update delete"`
 }
+
+type RequestUpdatePermission struct {
+	ID          string `validate:"required"`
+	Name        string `json:"name" validate:"required_without=Description,omitempty,min=10"`
+	Description string `json:"description" validate:"required_without=Name,omitempty,min=10"`
+}

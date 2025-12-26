@@ -117,6 +117,8 @@ func TranslateError(err error, prefixMap map[string]string) (error, validator.Va
 			case "required_if":
 				targetField, targetValue, _ := strings.Cut(err.Param(), " ")
 				messages = append(messages, fmt.Sprintf("%s is required if value of %s is %s", fieldName, targetField, targetValue))
+			case "required_without":
+				messages = append(messages, fmt.Sprintf("%s required if %s empty", fieldName, err.Param()))
 			}
 		}
 	}

@@ -76,8 +76,8 @@ func (s *ContextedPermission) CreatePermission(payload payloads.RequestCreatePer
 			errPayload = errorlib.MakeServerError(err)
 			return err
 		} else if exists {
-			errPayload = &reply.ErrorPayload{Code: replylib.CodeConflict, Message: "permission with this name already exist"}
-			return errors.New("name permission is not unique")
+			errPayload = &replylib.ErrPermissionNameExist
+			return errors.New(errPayload.Message)
 		}
 
 		// prevent double
@@ -148,6 +148,66 @@ func (s *ContextedPermission) GetPermissions(payload payloads.RequestGetPermissi
 	return
 }
 
+func (s *ContextedPermission) UpdatePermission(payload payloads.RequestUpdatePermission) (permission *models.Permission, errPayload *reply.ErrorPayload) {
+	// validate payload
+	if errPayload = validatorlib.ValidateStructToReply(payload); errPayload != nil {
+		return
+	}
+
+	s.userRepo.DB().Transaction(func(tx *gorm.DB) error {
+		permissionRepo := s.permissionRepo.WithTx(tx)
+
+		// check if permission is permission seeds
+		for _, perm := range seeds.PermissionSeeds {
+			if perm.ID == payload.ID {
+				errPayload = &replylib.ErrPermissionImmutable
+				return errors.New(errPayload.Message)
+			}
+		}
+
+		// check name uniques and permission presence
+		perms, err := gorm.G[models.Permission](tx).Select("id", "name").Where("name = ? OR id = ?", payload.Name, payload.ID).Limit(2).Find(s.ctx)
+		if err != nil {
+			errPayload = errorlib.MakeServerError(err)
+			return err
+		}
+
+		var permExist bool
+		var nameConflict bool
+
+		for _, perm := range perms {
+			if perm.ID == payload.ID {
+				permExist = true
+			}
+			// pass if permission.ID = payload.ID
+			if payload.Name != "" && perm.Name == payload.Name && perm.ID != payload.ID {
+				nameConflict = true
+			}
+		}
+
+		if !permExist {
+			errPayload = &reply.ErrorPayload{Code: replylib.CodeNotFound, Message: "permission not found"}
+			return gorm.ErrRecordNotFound
+		}
+
+		if nameConflict {
+			errPayload = &replylib.ErrPermissionNameExist
+			return errors.New(errPayload.Message)
+		}
+
+		// update permission
+		permission = &models.Permission{Name: payload.Name, Description: payload.Description}
+		perm, err := permissionRepo.UpdateByIDAndGet(s.ctx, payload.ID, *permission)
+		if err != nil {
+			errPayload = errorlib.MakeServerError(err)
+		} else {
+			permission = &perm
+		}
+		return err
+	})
+	return
+}
+
 func (s *ContextedPermission) DeletePermission(permissionID string) (errPayload *reply.ErrorPayload) {
 	s.userRepo.DB().Transaction(func(tx *gorm.DB) error {
 		permissionRepo := s.permissionRepo.WithTx(tx)
@@ -155,8 +215,8 @@ func (s *ContextedPermission) DeletePermission(permissionID string) (errPayload 
 		// check if permission is permission seeds
 		for _, perm := range seeds.PermissionSeeds {
 			if perm.ID == permissionID {
-				errPayload = &reply.ErrorPayload{Code: replylib.CodeUnprocessableEntity, Message: "this permission can not be deleted"}
-				return errors.New("can't delete permission seed")
+				errPayload = &replylib.ErrPermissionImmutable
+				return errors.New(errPayload.Message)
 			}
 		}
 

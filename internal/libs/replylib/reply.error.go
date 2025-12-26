@@ -50,4 +50,13 @@ var (
 		Code:    CodeConflict,
 		Message: "admin is already exist",
 	}
+	ErrPermissionNameExist = reply.ErrorPayload{
+		Code:    CodeConflict,
+		Message: "another permission with this name already registered",
+		Fields:  []string{"name"},
+	}
+	ErrPermissionImmutable = reply.ErrorPayload{
+		Code:    CodeUnprocessableEntity,
+		Message: "this permission is immutable",
+	}
 )
