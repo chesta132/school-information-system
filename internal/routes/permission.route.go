@@ -4,22 +4,17 @@ import (
 	"school-information-system/internal/handlers"
 	"school-information-system/internal/middlewares"
 	"school-information-system/internal/models"
-	"school-information-system/internal/repos"
 	"school-information-system/internal/services"
 
 	"github.com/gin-gonic/gin"
 )
 
 func (rt *Route) RegisterPermission(group *gin.RouterGroup) {
-	userRepo := repos.NewUser(rt.db)
-	permRepo := repos.NewPermission(rt.db)
-	revokedRepo := repos.NewRevoked(rt.db)
-
-	permService := services.NewPermission(userRepo, permRepo)
+	permService := services.NewPermission(rt.rp.User(), rt.rp.Permission())
 
 	handler := handlers.NewPermission(permService)
 
-	mw := middlewares.NewAuth(userRepo, revokedRepo)
+	mw := middlewares.NewAuth(rt.rp.User(), rt.rp.Revoked())
 
 	group.POST("/grant", mw.PermissionProtected(
 		models.ResourcePermission,

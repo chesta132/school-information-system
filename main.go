@@ -6,6 +6,7 @@ import (
 	"school-information-system/database/seeds"
 	"school-information-system/internal/cron"
 	"school-information-system/internal/libs/validatorlib"
+	"school-information-system/internal/repos"
 	"school-information-system/internal/routes"
 
 	"github.com/gin-gonic/gin"
@@ -28,7 +29,7 @@ func main() {
 	// setup router
 	r := gin.Default()
 	api := r.Group("/api")
-	router := routes.NewRoute(db)
+	router := routes.NewRoute(db, repos.New(db))
 
 	// register routes
 	{

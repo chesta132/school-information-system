@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"school-information-system/config"
 	"school-information-system/internal/libs/replylib"
+	"school-information-system/internal/repos"
 	"time"
 
 	adapter "github.com/chesta132/goreply/adapter/gin"
@@ -14,10 +15,11 @@ import (
 
 type Route struct {
 	db *gorm.DB
+	rp *repos.Repos
 }
 
-func NewRoute(db *gorm.DB) *Route {
-	return &Route{db}
+func NewRoute(db *gorm.DB, repositories *repos.Repos) *Route {
+	return &Route{db, repositories}
 }
 
 func (rt *Route) RegisterBase(r *gin.Engine) {

@@ -4,28 +4,25 @@ import (
 	"school-information-system/internal/handlers"
 	"school-information-system/internal/middlewares"
 	"school-information-system/internal/models"
-	"school-information-system/internal/repos"
 	"school-information-system/internal/services"
 
 	"github.com/gin-gonic/gin"
 )
 
 func (rt *Route) RegisterAdmin(group *gin.RouterGroup) {
-	userRepo := repos.NewUser(rt.db)
-	adminRepo := repos.NewAdmin(rt.db)
-	revokedRepo := repos.NewRevoked(rt.db)
-	// role setter repos
-	studentRepo := repos.NewStudent(rt.db)
-	classRepo := repos.NewClass(rt.db)
-	parentRepo := repos.NewParent(rt.db)
-	teacherRepo := repos.NewTeacher(rt.db)
-	subjectRepo := repos.NewSubject(rt.db)
-
-	adminService := services.NewAdmin(userRepo, adminRepo)
-	roleSetterService := services.NewRoleSetter(userRepo, adminRepo, studentRepo, classRepo, parentRepo, teacherRepo, subjectRepo)
+	adminService := services.NewAdmin(rt.rp.User(), rt.rp.Admin())
+	roleSetterService := services.NewRoleSetter(
+		rt.rp.User(),
+		rt.rp.Admin(),
+		rt.rp.Student(),
+		rt.rp.Class(),
+		rt.rp.Parent(),
+		rt.rp.Teacher(),
+		rt.rp.Subject(),
+	)
 
 	handler := handlers.NewAdmin(adminService, roleSetterService)
-	mw := middlewares.NewAuth(userRepo, revokedRepo)
+	mw := middlewares.NewAuth(rt.rp.User(), rt.rp.Revoked())
 
 	group.POST("/initiate", mw.Protected(true), handler.InitiateAdmin)
 
