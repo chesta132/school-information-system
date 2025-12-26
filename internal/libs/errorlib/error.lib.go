@@ -8,4 +8,5 @@ var (
 	ErrInvalidRole          = errors.New("you can not access this resource")
 	ErrTargetInvalidRole    = errors.New("targeted user does not have a permitted role to access the resource")
 	ErrTargetHavePermission = errors.New("targeted user already has permission to access the resource")
+	ErrTargetDoesntHavePerm = errors.New("targeted user doesn't have permission to process")
 )

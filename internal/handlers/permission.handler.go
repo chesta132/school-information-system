@@ -40,3 +40,22 @@ func (h *Permission) GrantPermission(c *gin.Context) {
 	permActs := slicelib.Map(permission.Actions, func(i int, act models.PermissionAction) string { return string(act) })
 	rp.Success(user).Info(fmt.Sprintf("%s's permitted to %s %s", user.FullName, strings.Join(permActs, ", "), permission.Resource)).OkJSON()
 }
+
+func (h *Permission) RevokePermission(c *gin.Context) {
+	rp := replylib.Client.New(adapter.AdaptGin(c))
+	var payload payloads.RequestRevokePermission
+	if err := c.ShouldBindJSON(&payload); err != nil {
+		rp.Error(replylib.CodeBadRequest, err.Error()).FailJSON()
+		return
+	}
+
+	user, permission, errPayload := h.permService.ApplyContext(c).RevokePermission(payload)
+	if errPayload != nil {
+		rp.Error(errPayload.Code, errPayload.Message, reply.OptErrorPayload{Details: errPayload.Details, Fields: errPayload.Fields}).FailJSON()
+		return
+	}
+
+	// strings.Join can't process []models.PermissionAction
+	permActs := slicelib.Map(permission.Actions, func(i int, act models.PermissionAction) string { return string(act) })
+	rp.Success(user).Info(fmt.Sprintf("%s's no longer permitted to %s %s", user.FullName, strings.Join(permActs, ", "), permission.Resource)).OkJSON()
+}

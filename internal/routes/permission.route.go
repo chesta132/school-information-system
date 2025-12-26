@@ -18,6 +18,10 @@ func (rt *Route) RegisterPermission(group *gin.RouterGroup) {
 
 	group.POST("/grant", mw.PermissionProtected(
 		models.ResourcePermission,
-		[]models.PermissionAction{models.ActionRead, models.ActionUpdate},
+		[]models.PermissionAction{models.ActionUpdate},
 	), handler.GrantPermission)
+	group.POST("/revoke", mw.PermissionProtected(
+		models.ResourcePermission,
+		[]models.PermissionAction{models.ActionUpdate},
+	), handler.RevokePermission)
 }

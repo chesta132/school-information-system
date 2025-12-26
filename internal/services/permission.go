@@ -33,37 +33,53 @@ func (s *Permission) ApplyContext(c *gin.Context) *ContextedPermission {
 	return &ContextedPermission{s, c, c.Request.Context()}
 }
 
+func (s *ContextedPermission) validateAdminAndPermission(ctx context.Context, tx *gorm.DB, targetID, permissionID string) (user *models.User, hasPermission bool, errPayload *reply.ErrorPayload, err error) {
+	userRepo := s.userRepo.WithTx(tx)
+
+	u, err := userRepo.GetFirstWithPreload(ctx, []string{"AdminProfile", "AdminProfile.Permissions"}, "id = ?", targetID)
+	if err != nil {
+		errPayload = errorlib.MakeUserByTargetIDNotFound(err)
+		return
+	}
+	if u.AdminProfile == nil || u.Role != models.RoleAdmin {
+		errPayload = &reply.ErrorPayload{Code: replylib.CodeUnprocessableEntity, Message: errorlib.ErrTargetInvalidRole.Error()}
+		err = errorlib.ErrTargetInvalidRole
+		return
+	}
+
+	user = &u
+	for _, perm := range u.AdminProfile.Permissions {
+		if perm.ID == permissionID {
+			hasPermission = true
+			break
+		}
+	}
+	return
+}
+
 func (s *ContextedPermission) GrantPermission(payload payloads.RequestGrantPermission) (user *models.User, permission *models.Permission, errPayload *reply.ErrorPayload) {
+	// validate payload
 	if errPayload := validatorlib.ValidateStructToReply(payload); errPayload != nil {
 		return nil, nil, errPayload
 	}
 
 	// transaction to rollback if error
 	s.userRepo.DB().Transaction(func(tx *gorm.DB) error {
-		userRepo := s.userRepo.WithTx(tx)
 		permissionRepo := s.permissionRepo.WithTx(tx)
 
 		// get user and validate
-		u, err := userRepo.GetFirstWithPreload(s.ctx, []string{"AdminProfile", "AdminProfile.Permissions"}, "id = ?", payload.TargetID)
+		var hasPermission bool
+		var err error
+		user, hasPermission, errPayload, err = s.validateAdminAndPermission(s.ctx, tx, payload.TargetID, payload.PermissionID)
 		if err != nil {
-			errPayload = errorlib.MakeUserByTargetIDNotFound(err)
 			return err
 		}
-		if u.AdminProfile == nil || u.Role != models.RoleAdmin {
-			errPayload = &reply.ErrorPayload{Code: replylib.CodeUnprocessableEntity, Message: errorlib.ErrTargetInvalidRole.Error()}
-			return errorlib.ErrTargetInvalidRole
+		if hasPermission {
+			errPayload = &reply.ErrorPayload{Code: replylib.CodeConflict, Message: errorlib.ErrTargetHavePermission.Error()}
+			return errorlib.ErrTargetHavePermission
 		}
-		if len(u.AdminProfile.Permissions) > 0 {
-			for _, perm := range u.AdminProfile.Permissions {
-				if perm.ID == payload.PermissionID {
-					errPayload = &reply.ErrorPayload{Code: replylib.CodeConflict, Message: errorlib.ErrTargetHavePermission.Error()}
-					return errorlib.ErrTargetHavePermission
-				}
-			}
-		}
-		user = &u
 
-		// get permission to append
+		// get permission to grant
 		perm, err := permissionRepo.GetByID(s.ctx, payload.PermissionID)
 		if err != nil {
 			errPayload = errorlib.MakeNotFound(gorm.ErrRecordNotFound, "permission not found", []string{"permission_id"})
@@ -71,8 +87,48 @@ func (s *ContextedPermission) GrantPermission(payload payloads.RequestGrantPermi
 		}
 		permission = &perm
 
-		// append permission
+		// grant permission
 		err = tx.Model(user.AdminProfile).Association("Permissions").Append(&perm)
+		if err != nil {
+			errPayload = errorlib.MakeServerError(err)
+		}
+		return err
+	})
+	return
+}
+
+func (s *ContextedPermission) RevokePermission(payload payloads.RequestRevokePermission) (user *models.User, permission *models.Permission, errPayload *reply.ErrorPayload) {
+	// validate payload
+	if errPayload := validatorlib.ValidateStructToReply(payload); errPayload != nil {
+		return nil, nil, errPayload
+	}
+
+	// transaction to rollback if error
+	s.userRepo.DB().Transaction(func(tx *gorm.DB) error {
+		permissionRepo := s.permissionRepo.WithTx(tx)
+
+		// get user and validate
+		var hasPermission bool
+		var err error
+		user, hasPermission, errPayload, err = s.validateAdminAndPermission(s.ctx, tx, payload.TargetID, payload.PermissionID)
+		if err != nil {
+			return err
+		}
+		if !hasPermission {
+			errPayload = &reply.ErrorPayload{Code: replylib.CodeUnprocessableEntity, Message: errorlib.ErrTargetDoesntHavePerm.Error()}
+			return errorlib.ErrTargetDoesntHavePerm
+		}
+
+		// get permission to revoke
+		perm, err := permissionRepo.GetByID(s.ctx, payload.PermissionID)
+		if err != nil {
+			errPayload = errorlib.MakeNotFound(gorm.ErrRecordNotFound, "permission not found", []string{"permission_id"})
+			return err
+		}
+		permission = &perm
+
+		// revoke permission
+		err = tx.Model(user.AdminProfile).Association("Permissions").Delete(&perm)
 		if err != nil {
 			errPayload = errorlib.MakeServerError(err)
 		}
