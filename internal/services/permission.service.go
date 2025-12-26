@@ -35,7 +35,7 @@ func (s *Permission) ApplyContext(c *gin.Context) *ContextedPermission {
 	return &ContextedPermission{s, c, c.Request.Context()}
 }
 
-func (s *ContextedPermission) validateAdminAndPermission(ctx context.Context, tx *gorm.DB, targetID, permissionID string) (user *models.User, hasPermission bool, errPayload *reply.ErrorPayload, err error) {
+func (s *ContextedPermission) validateAdminAndPermission(ctx context.Context, tx *gorm.DB, targetID, permissionID string) (user *models.User, permission *models.Permission, errPayload *reply.ErrorPayload, err error) {
 	userRepo := s.userRepo.WithTx(tx)
 
 	u, err := userRepo.GetFirstWithPreload(ctx, []string{"AdminProfile", "AdminProfile.Permissions"}, "id = ?", targetID)
@@ -52,7 +52,7 @@ func (s *ContextedPermission) validateAdminAndPermission(ctx context.Context, tx
 	user = &u
 	for _, perm := range u.AdminProfile.Permissions {
 		if perm.ID == permissionID {
-			hasPermission = true
+			permission = perm
 			break
 		}
 	}
@@ -107,13 +107,12 @@ func (s *ContextedPermission) GrantPermission(payload payloads.RequestGrantPermi
 		permissionRepo := s.permissionRepo.WithTx(tx)
 
 		// get user and validate
-		var hasPermission bool
 		var err error
-		user, hasPermission, errPayload, err = s.validateAdminAndPermission(s.ctx, tx, payload.TargetID, payload.PermissionID)
+		user, permission, errPayload, err = s.validateAdminAndPermission(s.ctx, tx, payload.TargetID, payload.PermissionID)
 		if err != nil {
 			return err
 		}
-		if hasPermission {
+		if permission != nil {
 			errPayload = &reply.ErrorPayload{Code: replylib.CodeConflict, Message: errorlib.ErrTargetHavePermission.Error()}
 			return errorlib.ErrTargetHavePermission
 		}
@@ -144,30 +143,19 @@ func (s *ContextedPermission) RevokePermission(payload payloads.RequestRevokePer
 
 	// transaction to rollback if error
 	s.userRepo.DB().Transaction(func(tx *gorm.DB) error {
-		permissionRepo := s.permissionRepo.WithTx(tx)
-
-		// get user and validate
-		var hasPermission bool
+		// get user & permission then validate
 		var err error
-		user, hasPermission, errPayload, err = s.validateAdminAndPermission(s.ctx, tx, payload.TargetID, payload.PermissionID)
+		user, permission, errPayload, err = s.validateAdminAndPermission(s.ctx, tx, payload.TargetID, payload.PermissionID)
 		if err != nil {
 			return err
 		}
-		if !hasPermission {
+		if permission == nil {
 			errPayload = &reply.ErrorPayload{Code: replylib.CodeUnprocessableEntity, Message: errorlib.ErrTargetDoesntHavePerm.Error()}
 			return errorlib.ErrTargetDoesntHavePerm
 		}
 
-		// get permission to revoke
-		perm, err := permissionRepo.GetByID(s.ctx, payload.PermissionID)
-		if err != nil {
-			errPayload = errorlib.MakeNotFound(gorm.ErrRecordNotFound, "permission not found", []string{"permission_id"})
-			return err
-		}
-		permission = &perm
-
 		// revoke permission
-		err = tx.Model(user.AdminProfile).Association("Permissions").Delete(&perm)
+		err = tx.Model(user.AdminProfile).Association("Permissions").Delete(permission)
 		if err != nil {
 			errPayload = errorlib.MakeServerError(err)
 		}
