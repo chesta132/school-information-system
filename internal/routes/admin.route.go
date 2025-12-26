@@ -28,9 +28,14 @@ func (rt *Route) RegisterAdmin(group *gin.RouterGroup) {
 	mw := middlewares.NewAuth(userRepo, revokedRepo)
 
 	group.POST("/initiate", mw.Protected(true), handler.InitiateAdmin)
+
+	group.Use(mw.RoleProtected(models.RoleAdmin))
+
 	group.POST(
 		"/set-role",
-		mw.PermissionProtected(models.ResourceRole, []models.PermissionAction{models.ActionCreate, models.ActionUpdate, models.ActionRead}),
+		mw.PermissionProtected(models.ResourceRole, []models.PermissionAction{models.ActionRead, models.ActionUpdate}),
 		handler.SetRole,
 	)
+
+	rt.RegisterPermission(group.Group("/permissions"))
 }

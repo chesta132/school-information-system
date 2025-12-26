@@ -40,3 +40,8 @@ type RequestSetRoleAdmin struct {
 	EmployeeID string    `json:"employee_id" validate:"required"`
 	JoinedAt   time.Time `json:"joined_at" validate:"required"`
 }
+
+type RequestGrantPermission struct {
+	TargetID     string `json:"target_id" validate:"required"`
+	PermissionID string `json:"permission_id" validate:"required"`
+}
