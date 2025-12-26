@@ -100,10 +100,20 @@ func TranslateError(err error, prefixMap map[string]string) (error, validator.Va
 				messages = append(messages, fmt.Sprintf("%s is not valid email", fieldName))
 			case "oneof":
 				messages = append(messages, fmt.Sprintf("%s is not a valid enum of [%s]", fieldName, err.Param()))
-			case "min":
-				messages = append(messages, fmt.Sprintf("%s must be at least %s characters", fieldName, err.Param()))
-			case "max":
-				messages = append(messages, fmt.Sprintf("%s must be at most %s characters", fieldName, err.Param()))
+			case "min", "max":
+				suffix := ""
+				switch err.Kind() {
+				case reflect.Slice, reflect.Array:
+					suffix = " items"
+				case reflect.String:
+					suffix = " characters"
+				}
+
+				operator := "at least"
+				if err.Tag() == "max" {
+					operator = "at most"
+				}
+				messages = append(messages, fmt.Sprintf("%s must be %s %s%s", fieldName, operator, err.Param(), suffix))
 			case "required_if":
 				targetField, targetValue, _ := strings.Cut(err.Param(), " ")
 				messages = append(messages, fmt.Sprintf("%s is required if value of %s is %s", fieldName, targetField, targetValue))
