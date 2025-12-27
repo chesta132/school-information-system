@@ -3,54 +3,69 @@ definitions:
   models.Admin:
     properties:
       created_at:
+        example: 2006-01-02T15:04:05Z07:00
         type: string
       employee_id:
+        example: DEV001
         type: string
       id:
+        example: 479b5b5f-81b1-4669-91a5-b5bf69e597c6
         type: string
       joined_at:
+        example: 2006-01-02T15:04:05Z07:00
         type: string
       staff_role:
+        example: developer
         type: string
       updated_at:
+        example: 2006-01-02T15:04:05Z07:00
         type: string
     type: object
   models.Class:
     properties:
       created_at:
+        example: 2006-01-02T15:04:05Z07:00
         type: string
-      form_teacher:
-        $ref: '#/definitions/models.Teacher'
       id:
+        example: 479b5b5f-81b1-4669-91a5-b5bf69e597c6
         type: string
       name:
+        example: 10 TJKT 3
         type: string
       updated_at:
+        example: 2006-01-02T15:04:05Z07:00
         type: string
     type: object
-  models.ID:
+  models.Id:
     properties:
       id:
+        example: 479b5b5f-81b1-4669-91a5-b5bf69e597c6
         type: string
     type: object
   models.Parent:
     properties:
       created_at:
+        example: 2006-01-02T15:04:05Z07:00
         type: string
       email:
+        example: chestaardi4@gmail.com
         type: string
       full_name:
+        example: Chesta Ardiona
         type: string
       gender:
         allOf:
         - $ref: '#/definitions/models.UserGender'
         description: '"male", "female"'
       id:
+        example: 479b5b5f-81b1-4669-91a5-b5bf69e597c6
         type: string
       phone:
         description: phone number
+        example: "+6281234567890"
         type: string
       updated_at:
+        example: 2006-01-02T15:04:05Z07:00
         type: string
     type: object
   models.Permission:
@@ -61,16 +76,21 @@ definitions:
           $ref: '#/definitions/models.PermissionAction'
         type: array
       created_at:
+        example: 2006-01-02T15:04:05Z07:00
         type: string
       description:
+        example: Full access to manage role of users
         type: string
       id:
+        example: 479b5b5f-81b1-4669-91a5-b5bf69e597c6
         type: string
       name:
+        example: role full manage
         type: string
       resource:
         $ref: '#/definitions/models.PermissionResource'
       updated_at:
+        example: 2006-01-02T15:04:05Z07:00
         type: string
     type: object
   models.PermissionAction:
@@ -95,76 +115,87 @@ definitions:
     - ResourcePermission
   models.Student:
     properties:
-      class:
-        $ref: '#/definitions/models.Class'
       created_at:
+        example: 2006-01-02T15:04:05Z07:00
         type: string
       id:
+        example: 479b5b5f-81b1-4669-91a5-b5bf69e597c6
         type: string
       nisn:
+        example: "0091913711"
         type: string
-      parents:
-        items:
-          $ref: '#/definitions/models.Parent'
-        type: array
       updated_at:
+        example: 2006-01-02T15:04:05Z07:00
         type: string
     type: object
   models.Subject:
     properties:
       created_at:
+        example: 2006-01-02T15:04:05Z07:00
         type: string
       id:
+        example: 479b5b5f-81b1-4669-91a5-b5bf69e597c6
         type: string
       name:
+        example: informatika
         type: string
       updated_at:
+        example: 2006-01-02T15:04:05Z07:00
         type: string
     type: object
   models.Teacher:
     properties:
       created_at:
+        example: 2006-01-02T15:04:05Z07:00
         type: string
       employee_id:
+        example: TEA001
         type: string
       id:
+        example: 479b5b5f-81b1-4669-91a5-b5bf69e597c6
         type: string
       joined_at:
+        example: 2006-01-02T15:04:05Z07:00
         type: string
       nuptk:
+        example: "1234567890123456"
         type: string
-      subjects:
-        items:
-          $ref: '#/definitions/models.Subject'
-        type: array
       updated_at:
+        example: 2006-01-02T15:04:05Z07:00
         type: string
     type: object
   models.User:
     properties:
       archived_at:
+        example: 2006-01-02T15:04:05Z07:00
         type: string
       created_at:
+        example: 2006-01-02T15:04:05Z07:00
         type: string
       email:
         description: auth username
+        example: chestaardi4@gmail.com
         type: string
       full_name:
+        example: Chesta Ardiona
         type: string
       gender:
         allOf:
         - $ref: '#/definitions/models.UserGender'
         description: '"male", "female"'
       id:
+        example: 479b5b5f-81b1-4669-91a5-b5bf69e597c6
         type: string
       phone:
         description: phone number
+        example: "+6281234567890"
         type: string
       role:
         allOf:
         - $ref: '#/definitions/models.UserRole'
         description: '"student", "teacher", "admin", "unsetted"'
       updated_at:
+        example: 2006-01-02T15:04:05Z07:00
         type: string
     type: object
   models.UserGender:
@@ -545,9 +576,25 @@ paths:
                       admin_profile:
                         $ref: '#/definitions/models.Admin'
                       student_profile:
-                        $ref: '#/definitions/models.Student'
+                        allOf:
+                        - $ref: '#/definitions/models.Student'
+                        - properties:
+                            class:
+                              $ref: '#/definitions/models.Class'
+                            parents:
+                              items:
+                                $ref: '#/definitions/models.Parent'
+                              type: array
+                          type: object
                       teacher_profile:
-                        $ref: '#/definitions/models.Teacher'
+                        allOf:
+                        - $ref: '#/definitions/models.Teacher'
+                        - properties:
+                            subjects:
+                              items:
+                                $ref: '#/definitions/models.Subject'
+                              type: array
+                          type: object
                     type: object
                 meta:
                   $ref: '#/definitions/swaglib.Info'
@@ -778,8 +825,8 @@ paths:
       produces:
       - application/json
       responses:
-        "200":
-          description: OK
+        "201":
+          description: Created
           schema:
             allOf:
             - $ref: '#/definitions/swaglib.Envelope'
@@ -832,7 +879,7 @@ paths:
             - $ref: '#/definitions/swaglib.Envelope'
             - properties:
                 data:
-                  $ref: '#/definitions/models.ID'
+                  $ref: '#/definitions/models.Id'
               type: object
         default:
           description: ""

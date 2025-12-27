@@ -30,7 +30,7 @@ func NewPermission(permService *services.Permission) *Permission {
 // @Param				 Cookie   header 		string 	false	"access_token"
 // @Param				 Cookie2  header 		string 	true	"refresh_token"
 // @Param				 payload  body 			payloads.RequestCreatePermission	true	"data of new permission"
-// @Success      200  		{object}  swaglib.Envelope{data=models.Permission,meta=swaglib.Info}
+// @Success      201  		{object}  swaglib.Envelope{data=models.Permission,meta=swaglib.Info}
 // @Response     default  {object}  swaglib.Envelope{data=reply.ErrorPayload}
 // @Router       /permissions [post]
 func (h *Permission) CreatePermission(c *gin.Context) {

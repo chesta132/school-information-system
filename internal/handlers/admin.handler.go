@@ -53,7 +53,7 @@ func (h *Admin) InitiateAdmin(c *gin.Context) {
 // @Param				 Cookie   header 		string 	false	"access_token"
 // @Param				 Cookie2  header 		string 	true	"refresh_token"
 // @Param				 payload  body			payloads.RequestSetRole	true	"data of targeted user's role, only insert data that match with target_role"
-// @Success      200  		{object}  swaglib.Envelope{data=models.User{admin_profile=models.Admin,student_profile=models.Student,teacher_profile=models.Teacher},meta=swaglib.Info} "*_data is match with role"
+// @Success      200  		{object}  swaglib.Envelope{data=models.User{admin_profile=models.Admin,student_profile=models.Student{class=models.Class,parents=[]models.Parent},teacher_profile=models.Teacher{subjects=[]models.Subject}},meta=swaglib.Info} "*_data is match with role"
 // @Response     default  {object}  swaglib.Envelope{data=reply.ErrorPayload}
 // @Router       /admins/set-role [put]
 func (h *Admin) SetRole(c *gin.Context) {

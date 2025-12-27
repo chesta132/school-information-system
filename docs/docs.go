@@ -181,10 +181,43 @@ const docTemplate = `{
                                                             "$ref": "#/definitions/models.Admin"
                                                         },
                                                         "student_profile": {
-                                                            "$ref": "#/definitions/models.Student"
+                                                            "allOf": [
+                                                                {
+                                                                    "$ref": "#/definitions/models.Student"
+                                                                },
+                                                                {
+                                                                    "type": "object",
+                                                                    "properties": {
+                                                                        "class": {
+                                                                            "$ref": "#/definitions/models.Class"
+                                                                        },
+                                                                        "parents": {
+                                                                            "type": "array",
+                                                                            "items": {
+                                                                                "$ref": "#/definitions/models.Parent"
+                                                                            }
+                                                                        }
+                                                                    }
+                                                                }
+                                                            ]
                                                         },
                                                         "teacher_profile": {
-                                                            "$ref": "#/definitions/models.Teacher"
+                                                            "allOf": [
+                                                                {
+                                                                    "$ref": "#/definitions/models.Teacher"
+                                                                },
+                                                                {
+                                                                    "type": "object",
+                                                                    "properties": {
+                                                                        "subjects": {
+                                                                            "type": "array",
+                                                                            "items": {
+                                                                                "$ref": "#/definitions/models.Subject"
+                                                                            }
+                                                                        }
+                                                                    }
+                                                                }
+                                                            ]
                                                         }
                                                     }
                                                 }
@@ -587,8 +620,8 @@ const docTemplate = `{
                     }
                 ],
                 "responses": {
-                    "200": {
-                        "description": "OK",
+                    "201": {
+                        "description": "Created",
                         "schema": {
                             "allOf": [
                                 {
@@ -1045,7 +1078,7 @@ const docTemplate = `{
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/models.ID"
+                                            "$ref": "#/definitions/models.Id"
                                         }
                                     }
                                 }
@@ -1079,22 +1112,28 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "created_at": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "2006-01-02T15:04:05Z07:00"
                 },
                 "employee_id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "DEV001"
                 },
                 "id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "479b5b5f-81b1-4669-91a5-b5bf69e597c6"
                 },
                 "joined_at": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "2006-01-02T15:04:05Z07:00"
                 },
                 "staff_role": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "developer"
                 },
                 "updated_at": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "2006-01-02T15:04:05Z07:00"
                 }
             }
         },
@@ -1102,27 +1141,29 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "created_at": {
-                    "type": "string"
-                },
-                "form_teacher": {
-                    "$ref": "#/definitions/models.Teacher"
+                    "type": "string",
+                    "example": "2006-01-02T15:04:05Z07:00"
                 },
                 "id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "479b5b5f-81b1-4669-91a5-b5bf69e597c6"
                 },
                 "name": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "10 TJKT 3"
                 },
                 "updated_at": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "2006-01-02T15:04:05Z07:00"
                 }
             }
         },
-        "models.ID": {
+        "models.Id": {
             "type": "object",
             "properties": {
                 "id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "479b5b5f-81b1-4669-91a5-b5bf69e597c6"
                 }
             }
         },
@@ -1130,13 +1171,16 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "created_at": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "2006-01-02T15:04:05Z07:00"
                 },
                 "email": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "chestaardi4@gmail.com"
                 },
                 "full_name": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "Chesta Ardiona"
                 },
                 "gender": {
                     "description": "\"male\", \"female\"",
@@ -1147,14 +1191,17 @@ const docTemplate = `{
                     ]
                 },
                 "id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "479b5b5f-81b1-4669-91a5-b5bf69e597c6"
                 },
                 "phone": {
                     "description": "phone number",
-                    "type": "string"
+                    "type": "string",
+                    "example": "+6281234567890"
                 },
                 "updated_at": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "2006-01-02T15:04:05Z07:00"
                 }
             }
         },
@@ -1169,22 +1216,27 @@ const docTemplate = `{
                     }
                 },
                 "created_at": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "2006-01-02T15:04:05Z07:00"
                 },
                 "description": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "Full access to manage role of users"
                 },
                 "id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "479b5b5f-81b1-4669-91a5-b5bf69e597c6"
                 },
                 "name": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "role full manage"
                 },
                 "resource": {
                     "$ref": "#/definitions/models.PermissionResource"
                 },
                 "updated_at": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "2006-01-02T15:04:05Z07:00"
                 }
             }
         },
@@ -1217,26 +1269,21 @@ const docTemplate = `{
         "models.Student": {
             "type": "object",
             "properties": {
-                "class": {
-                    "$ref": "#/definitions/models.Class"
-                },
                 "created_at": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "2006-01-02T15:04:05Z07:00"
                 },
                 "id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "479b5b5f-81b1-4669-91a5-b5bf69e597c6"
                 },
                 "nisn": {
-                    "type": "string"
-                },
-                "parents": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/models.Parent"
-                    }
+                    "type": "string",
+                    "example": "0091913711"
                 },
                 "updated_at": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "2006-01-02T15:04:05Z07:00"
                 }
             }
         },
@@ -1244,16 +1291,20 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "created_at": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "2006-01-02T15:04:05Z07:00"
                 },
                 "id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "479b5b5f-81b1-4669-91a5-b5bf69e597c6"
                 },
                 "name": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "informatika"
                 },
                 "updated_at": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "2006-01-02T15:04:05Z07:00"
                 }
             }
         },
@@ -1261,28 +1312,28 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "created_at": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "2006-01-02T15:04:05Z07:00"
                 },
                 "employee_id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "TEA001"
                 },
                 "id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "479b5b5f-81b1-4669-91a5-b5bf69e597c6"
                 },
                 "joined_at": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "2006-01-02T15:04:05Z07:00"
                 },
                 "nuptk": {
-                    "type": "string"
-                },
-                "subjects": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/models.Subject"
-                    }
+                    "type": "string",
+                    "example": "1234567890123456"
                 },
                 "updated_at": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "2006-01-02T15:04:05Z07:00"
                 }
             }
         },
@@ -1290,17 +1341,21 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "archived_at": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "2006-01-02T15:04:05Z07:00"
                 },
                 "created_at": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "2006-01-02T15:04:05Z07:00"
                 },
                 "email": {
                     "description": "auth username",
-                    "type": "string"
+                    "type": "string",
+                    "example": "chestaardi4@gmail.com"
                 },
                 "full_name": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "Chesta Ardiona"
                 },
                 "gender": {
                     "description": "\"male\", \"female\"",
@@ -1311,11 +1366,13 @@ const docTemplate = `{
                     ]
                 },
                 "id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "479b5b5f-81b1-4669-91a5-b5bf69e597c6"
                 },
                 "phone": {
                     "description": "phone number",
-                    "type": "string"
+                    "type": "string",
+                    "example": "+6281234567890"
                 },
                 "role": {
                     "description": "\"student\", \"teacher\", \"admin\", \"unsetted\"",
@@ -1326,7 +1383,8 @@ const docTemplate = `{
                     ]
                 },
                 "updated_at": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "2006-01-02T15:04:05Z07:00"
                 }
             }
         },
