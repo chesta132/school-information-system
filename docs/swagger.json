@@ -1,0 +1,1729 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "description": "This is an API used for manages school environment.",
+        "title": "School Information System API",
+        "contact": {},
+        "version": "1.0"
+    },
+    "host": "localhost:8080",
+    "basePath": "/api",
+    "paths": {
+        "/admins/initiate": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "admin"
+                ],
+                "summary": "Initiates new admin",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "access_token",
+                        "name": "Cookie",
+                        "in": "header"
+                    },
+                    {
+                        "type": "string",
+                        "description": "refresh_token",
+                        "name": "Cookie2",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "data of initiated admin",
+                        "name": "payload",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/payloads.RequestInitiateAdmin"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/swaglib.Envelope"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "allOf": [
+                                                {
+                                                    "$ref": "#/definitions/models.User"
+                                                },
+                                                {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "admin_profile": {
+                                                            "allOf": [
+                                                                {
+                                                                    "$ref": "#/definitions/models.Admin"
+                                                                },
+                                                                {
+                                                                    "type": "object",
+                                                                    "properties": {
+                                                                        "permissions": {
+                                                                            "type": "array",
+                                                                            "items": {
+                                                                                "$ref": "#/definitions/models.Permission"
+                                                                            }
+                                                                        }
+                                                                    }
+                                                                }
+                                                            ]
+                                                        }
+                                                    }
+                                                }
+                                            ]
+                                        },
+                                        "meta": {
+                                            "$ref": "#/definitions/swaglib.Info"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "default": {
+                        "description": "",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/swaglib.Envelope"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/reply.ErrorPayload"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/admins/set-role": {
+            "put": {
+                "description": "Admin with permission update role resource only",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "admin"
+                ],
+                "summary": "Set another user's role",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "access_token",
+                        "name": "Cookie",
+                        "in": "header"
+                    },
+                    {
+                        "type": "string",
+                        "description": "refresh_token",
+                        "name": "Cookie2",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "data of targeted user's role, only insert data that match with target_role",
+                        "name": "payload",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/payloads.RequestSetRole"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "*_data is match with role",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/swaglib.Envelope"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "allOf": [
+                                                {
+                                                    "$ref": "#/definitions/models.User"
+                                                },
+                                                {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "admin_profile": {
+                                                            "$ref": "#/definitions/models.Admin"
+                                                        },
+                                                        "student_profile": {
+                                                            "$ref": "#/definitions/models.Student"
+                                                        },
+                                                        "teacher_profile": {
+                                                            "$ref": "#/definitions/models.Teacher"
+                                                        }
+                                                    }
+                                                }
+                                            ]
+                                        },
+                                        "meta": {
+                                            "$ref": "#/definitions/swaglib.Info"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "default": {
+                        "description": "",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/swaglib.Envelope"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/reply.ErrorPayload"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/auth/sign-in": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth"
+                ],
+                "summary": "Sign in to registered account",
+                "parameters": [
+                    {
+                        "description": "data of registered account",
+                        "name": "payload",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/payloads.RequestSignIn"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/swaglib.Envelope"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/models.User"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "default": {
+                        "description": "",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/swaglib.Envelope"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/reply.ErrorPayload"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/auth/sign-out": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth"
+                ],
+                "summary": "Sign out from session",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/swaglib.Envelope"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/auth/sign-up": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth"
+                ],
+                "summary": "Creates new account and sign in",
+                "parameters": [
+                    {
+                        "description": "data of new account",
+                        "name": "payload",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/payloads.RequestSignUp"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/swaglib.Envelope"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/models.User"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "default": {
+                        "description": "",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/swaglib.Envelope"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/reply.ErrorPayload"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/health": {
+            "get": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "health"
+                ],
+                "summary": "Check server's health",
+                "parameters": [
+                    {
+                        "type": "boolean",
+                        "description": "set 'true' if want to check db status",
+                        "name": "dbcheck",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/swaglib.Envelope"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/routes.health"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "default": {
+                        "description": "",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/swaglib.Envelope"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/reply.ErrorPayload"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/permissions": {
+            "get": {
+                "description": "Admin with permission read permission resource only",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "permission"
+                ],
+                "summary": "Get existing permissions",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "access_token",
+                        "name": "Cookie",
+                        "in": "header"
+                    },
+                    {
+                        "type": "string",
+                        "description": "refresh_token",
+                        "name": "Cookie2",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "array",
+                        "items": {
+                            "enum": [
+                                "create",
+                                "read",
+                                "update",
+                                "delete"
+                            ],
+                            "type": "string"
+                        },
+                        "collectionFormat": "csv",
+                        "name": "action",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "name": "offset",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "name": "q",
+                        "in": "query"
+                    },
+                    {
+                        "type": "array",
+                        "items": {
+                            "enum": [
+                                "role",
+                                "permission"
+                            ],
+                            "type": "string"
+                        },
+                        "collectionFormat": "csv",
+                        "name": "resource",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "allOf": [
+                                    {
+                                        "$ref": "#/definitions/swaglib.Envelope"
+                                    },
+                                    {
+                                        "type": "object",
+                                        "properties": {
+                                            "data": {
+                                                "$ref": "#/definitions/models.Permission"
+                                            },
+                                            "meta": {
+                                                "$ref": "#/definitions/swaglib.Pagination"
+                                            }
+                                        }
+                                    }
+                                ]
+                            }
+                        }
+                    },
+                    "default": {
+                        "description": "",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/swaglib.Envelope"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/reply.ErrorPayload"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "Admin with permission create permission resource only",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "permission"
+                ],
+                "summary": "Create new permission combination",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "access_token",
+                        "name": "Cookie",
+                        "in": "header"
+                    },
+                    {
+                        "type": "string",
+                        "description": "refresh_token",
+                        "name": "Cookie2",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "data of new permission",
+                        "name": "payload",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/payloads.RequestCreatePermission"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/swaglib.Envelope"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/models.Permission"
+                                        },
+                                        "meta": {
+                                            "$ref": "#/definitions/swaglib.Info"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "default": {
+                        "description": "",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/swaglib.Envelope"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/reply.ErrorPayload"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/permissions/grant": {
+            "put": {
+                "description": "Admin with permission update permission resource only. Response granted user",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "permission"
+                ],
+                "summary": "Grant existing permission to another admin",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "access_token",
+                        "name": "Cookie",
+                        "in": "header"
+                    },
+                    {
+                        "type": "string",
+                        "description": "refresh_token",
+                        "name": "Cookie2",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "data to grant permission",
+                        "name": "payload",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/payloads.RequestGrantPermission"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/swaglib.Envelope"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "allOf": [
+                                                {
+                                                    "$ref": "#/definitions/models.User"
+                                                },
+                                                {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "admin_profile": {
+                                                            "allOf": [
+                                                                {
+                                                                    "$ref": "#/definitions/models.Admin"
+                                                                },
+                                                                {
+                                                                    "type": "object",
+                                                                    "properties": {
+                                                                        "permissions": {
+                                                                            "type": "array",
+                                                                            "items": {
+                                                                                "$ref": "#/definitions/models.Permission"
+                                                                            }
+                                                                        }
+                                                                    }
+                                                                }
+                                                            ]
+                                                        }
+                                                    }
+                                                }
+                                            ]
+                                        },
+                                        "meta": {
+                                            "$ref": "#/definitions/swaglib.Info"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "default": {
+                        "description": "",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/swaglib.Envelope"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/reply.ErrorPayload"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/permissions/revoke": {
+            "put": {
+                "description": "Admin with permission update permission resource only. Response granted user",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "permission"
+                ],
+                "summary": "Revoke existing permission of another admin",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "access_token",
+                        "name": "Cookie",
+                        "in": "header"
+                    },
+                    {
+                        "type": "string",
+                        "description": "refresh_token",
+                        "name": "Cookie2",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "data to revoke permission",
+                        "name": "payload",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/payloads.RequestRevokePermission"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/swaglib.Envelope"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "allOf": [
+                                                {
+                                                    "$ref": "#/definitions/models.User"
+                                                },
+                                                {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "admin_profile": {
+                                                            "allOf": [
+                                                                {
+                                                                    "$ref": "#/definitions/models.Admin"
+                                                                },
+                                                                {
+                                                                    "type": "object",
+                                                                    "properties": {
+                                                                        "permissions": {
+                                                                            "type": "array",
+                                                                            "items": {
+                                                                                "$ref": "#/definitions/models.Permission"
+                                                                            }
+                                                                        }
+                                                                    }
+                                                                }
+                                                            ]
+                                                        }
+                                                    }
+                                                }
+                                            ]
+                                        },
+                                        "meta": {
+                                            "$ref": "#/definitions/swaglib.Info"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "default": {
+                        "description": "",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/swaglib.Envelope"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/reply.ErrorPayload"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/permissions/{id}": {
+            "get": {
+                "description": "Admin with permission read permission resource only",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "permission"
+                ],
+                "summary": "Get existing permission with id",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "access_token",
+                        "name": "Cookie",
+                        "in": "header"
+                    },
+                    {
+                        "type": "string",
+                        "description": "refresh_token",
+                        "name": "Cookie2",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "permission id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/swaglib.Envelope"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/models.Permission"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "default": {
+                        "description": "",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/swaglib.Envelope"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/reply.ErrorPayload"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            },
+            "put": {
+                "description": "Admin with permission update permission resource only. Can not update permission seeds",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "permission"
+                ],
+                "summary": "Update existing permission",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "access_token",
+                        "name": "Cookie",
+                        "in": "header"
+                    },
+                    {
+                        "type": "string",
+                        "description": "refresh_token",
+                        "name": "Cookie2",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "permission id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "data to update permission",
+                        "name": "payload",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/payloads.RequestUpdatePermission"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/swaglib.Envelope"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/models.Permission"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "default": {
+                        "description": "",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/swaglib.Envelope"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/reply.ErrorPayload"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "description": "Admin with permission delete permission resource only. Can not deleet granted permission",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "permission"
+                ],
+                "summary": "Delete existing permission",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "access_token",
+                        "name": "Cookie",
+                        "in": "header"
+                    },
+                    {
+                        "type": "string",
+                        "description": "refresh_token",
+                        "name": "Cookie2",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "permission id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/swaglib.Envelope"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/models.ID"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "default": {
+                        "description": "",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/swaglib.Envelope"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/reply.ErrorPayload"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "models.Admin": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "employee_id": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "joined_at": {
+                    "type": "string"
+                },
+                "staff_role": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.Class": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "form_teacher": {
+                    "$ref": "#/definitions/models.Teacher"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.ID": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.Parent": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "full_name": {
+                    "type": "string"
+                },
+                "gender": {
+                    "description": "\"male\", \"female\"",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/models.UserGender"
+                        }
+                    ]
+                },
+                "id": {
+                    "type": "string"
+                },
+                "phone": {
+                    "description": "phone number",
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.Permission": {
+            "type": "object",
+            "properties": {
+                "actions": {
+                    "description": "[](\"create\", \"read\", \"update\", \"delete\")",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.PermissionAction"
+                    }
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "resource": {
+                    "$ref": "#/definitions/models.PermissionResource"
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.PermissionAction": {
+            "type": "string",
+            "enum": [
+                "create",
+                "read",
+                "update",
+                "delete"
+            ],
+            "x-enum-varnames": [
+                "ActionCreate",
+                "ActionRead",
+                "ActionUpdate",
+                "ActionDelete"
+            ]
+        },
+        "models.PermissionResource": {
+            "type": "string",
+            "enum": [
+                "role",
+                "permission"
+            ],
+            "x-enum-varnames": [
+                "ResourceRole",
+                "ResourcePermission"
+            ]
+        },
+        "models.Student": {
+            "type": "object",
+            "properties": {
+                "class": {
+                    "$ref": "#/definitions/models.Class"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "nisn": {
+                    "type": "string"
+                },
+                "parents": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.Parent"
+                    }
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.Subject": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.Teacher": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "employee_id": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "joined_at": {
+                    "type": "string"
+                },
+                "nuptk": {
+                    "type": "string"
+                },
+                "subjects": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.Subject"
+                    }
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.User": {
+            "type": "object",
+            "properties": {
+                "archived_at": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "email": {
+                    "description": "auth username",
+                    "type": "string"
+                },
+                "full_name": {
+                    "type": "string"
+                },
+                "gender": {
+                    "description": "\"male\", \"female\"",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/models.UserGender"
+                        }
+                    ]
+                },
+                "id": {
+                    "type": "string"
+                },
+                "phone": {
+                    "description": "phone number",
+                    "type": "string"
+                },
+                "role": {
+                    "description": "\"student\", \"teacher\", \"admin\", \"unsetted\"",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/models.UserRole"
+                        }
+                    ]
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.UserGender": {
+            "type": "string",
+            "enum": [
+                "male",
+                "female"
+            ],
+            "x-enum-varnames": [
+                "GenderMale",
+                "GenderFemale"
+            ]
+        },
+        "models.UserRole": {
+            "type": "string",
+            "enum": [
+                "student",
+                "teacher",
+                "admin",
+                "unsetted"
+            ],
+            "x-enum-varnames": [
+                "RoleStudent",
+                "RoleTeacher",
+                "RoleAdmin",
+                "RoleUnsetted"
+            ]
+        },
+        "payloads.RequestCreatePermission": {
+            "type": "object",
+            "required": [
+                "actions",
+                "description",
+                "name",
+                "resource"
+            ],
+            "properties": {
+                "actions": {
+                    "type": "array",
+                    "minItems": 1,
+                    "items": {
+                        "$ref": "#/definitions/models.PermissionAction"
+                    }
+                },
+                "description": {
+                    "type": "string",
+                    "minLength": 10
+                },
+                "name": {
+                    "type": "string",
+                    "minLength": 10
+                },
+                "resource": {
+                    "enum": [
+                        "role",
+                        "permission"
+                    ],
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/models.PermissionResource"
+                        }
+                    ]
+                }
+            }
+        },
+        "payloads.RequestGrantPermission": {
+            "type": "object",
+            "required": [
+                "permission_id",
+                "target_id"
+            ],
+            "properties": {
+                "permission_id": {
+                    "type": "string"
+                },
+                "target_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "payloads.RequestInitiateAdmin": {
+            "type": "object",
+            "required": [
+                "employee_id",
+                "joined_at",
+                "key",
+                "staff_role",
+                "target_id"
+            ],
+            "properties": {
+                "employee_id": {
+                    "type": "string"
+                },
+                "joined_at": {
+                    "type": "string"
+                },
+                "key": {
+                    "type": "string"
+                },
+                "staff_role": {
+                    "type": "string"
+                },
+                "target_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "payloads.RequestRevokePermission": {
+            "type": "object",
+            "required": [
+                "permission_id",
+                "target_id"
+            ],
+            "properties": {
+                "permission_id": {
+                    "type": "string"
+                },
+                "target_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "payloads.RequestSetRole": {
+            "type": "object",
+            "required": [
+                "target_id",
+                "target_role"
+            ],
+            "properties": {
+                "admin_data": {
+                    "$ref": "#/definitions/payloads.RequestSetRoleAdmin"
+                },
+                "student_data": {
+                    "$ref": "#/definitions/payloads.RequestSetRoleStudent"
+                },
+                "target_id": {
+                    "type": "string"
+                },
+                "target_role": {
+                    "enum": [
+                        "student",
+                        "teacher",
+                        "admin"
+                    ],
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/models.UserRole"
+                        }
+                    ]
+                },
+                "teacher_data": {
+                    "$ref": "#/definitions/payloads.RequestSetRoleTeacher"
+                }
+            }
+        },
+        "payloads.RequestSetRoleAdmin": {
+            "type": "object",
+            "required": [
+                "employee_id",
+                "joined_at",
+                "staff_role"
+            ],
+            "properties": {
+                "employee_id": {
+                    "type": "string"
+                },
+                "joined_at": {
+                    "type": "string"
+                },
+                "staff_role": {
+                    "type": "string"
+                }
+            }
+        },
+        "payloads.RequestSetRoleStudent": {
+            "type": "object",
+            "required": [
+                "class_id",
+                "nisn",
+                "parent_ids"
+            ],
+            "properties": {
+                "class_id": {
+                    "type": "string"
+                },
+                "nisn": {
+                    "type": "string"
+                },
+                "parent_ids": {
+                    "type": "array",
+                    "maxItems": 2,
+                    "minItems": 2,
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "payloads.RequestSetRoleTeacher": {
+            "type": "object",
+            "required": [
+                "employee_id",
+                "joined_at",
+                "nuptk",
+                "subject_ids"
+            ],
+            "properties": {
+                "employee_id": {
+                    "type": "string"
+                },
+                "joined_at": {
+                    "type": "string"
+                },
+                "nuptk": {
+                    "type": "string"
+                },
+                "subject_ids": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "payloads.RequestSignIn": {
+            "type": "object",
+            "required": [
+                "email",
+                "password"
+            ],
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string"
+                },
+                "remember_me": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "payloads.RequestSignUp": {
+            "type": "object",
+            "required": [
+                "email",
+                "full_name",
+                "gender",
+                "password",
+                "phone"
+            ],
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "full_name": {
+                    "type": "string"
+                },
+                "gender": {
+                    "enum": [
+                        "male",
+                        "female"
+                    ],
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/models.UserGender"
+                        }
+                    ]
+                },
+                "password": {
+                    "type": "string",
+                    "minLength": 8
+                },
+                "phone": {
+                    "type": "string"
+                },
+                "remember_me": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "payloads.RequestUpdatePermission": {
+            "type": "object",
+            "required": [
+                "id"
+            ],
+            "properties": {
+                "description": {
+                    "type": "string",
+                    "minLength": 10
+                },
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string",
+                    "minLength": 10
+                }
+            }
+        },
+        "reply.ErrorPayload": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "description": "Machine-readable error code",
+                    "type": "string"
+                },
+                "details": {
+                    "description": "Optional debug details",
+                    "type": "string"
+                },
+                "fields": {
+                    "description": "Fields causing the error (if any)",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "message": {
+                    "description": "Human-readable message",
+                    "type": "string"
+                }
+            }
+        },
+        "routes.health": {
+            "type": "object",
+            "properties": {
+                "database": {
+                    "type": "string",
+                    "example": "healthy"
+                },
+                "status": {
+                    "type": "string",
+                    "example": "healthy"
+                },
+                "timestamp": {
+                    "type": "string",
+                    "example": "2006-01-02T15:04:05Z07:00"
+                }
+            }
+        },
+        "swaglib.Envelope": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "x-null-if-{}": true
+                },
+                "meta": {
+                    "$ref": "#/definitions/swaglib.Meta"
+                }
+            }
+        },
+        "swaglib.Info": {
+            "type": "object",
+            "properties": {
+                "information": {
+                    "description": "information message",
+                    "type": "string",
+                    "example": "resource successfully updated"
+                }
+            }
+        },
+        "swaglib.Meta": {
+            "type": "object",
+            "properties": {
+                "status": {
+                    "$ref": "#/definitions/swaglib.status"
+                }
+            }
+        },
+        "swaglib.Pagination": {
+            "type": "object",
+            "properties": {
+                "pagination": {
+                    "type": "object",
+                    "properties": {
+                        "current": {
+                            "description": "current offset",
+                            "type": "integer"
+                        },
+                        "hasNext": {
+                            "description": "true if data more than replied",
+                            "type": "boolean"
+                        },
+                        "next": {
+                            "description": "if hasNext is false, next is 0",
+                            "type": "integer"
+                        }
+                    }
+                }
+            }
+        },
+        "swaglib.status": {
+            "type": "string",
+            "enum": [
+                "SUCCESS",
+                "ERROR"
+            ],
+            "x-enum-varnames": [
+                "success",
+                "error"
+            ]
+        }
+    }
+}

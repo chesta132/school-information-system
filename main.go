@@ -4,6 +4,7 @@ import (
 	"school-information-system/config"
 	"school-information-system/database"
 	"school-information-system/database/seeds"
+	_ "school-information-system/docs"
 	"school-information-system/internal/cron"
 	"school-information-system/internal/libs/validatorlib"
 	"school-information-system/internal/repos"
@@ -12,7 +13,11 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// INFO: i just put some test routes here for quick testing of auth service
+// @title			School Information System API
+// @description	This is an API used for manages school environment.
+// @version 1.0
+// @host		localhost:8080
+// @BasePath	/api
 func main() {
 	// check env
 	if err := config.EnvCheck(); err != nil {

@@ -17,6 +17,14 @@ func NewAuth(authService *services.Auth) *Auth {
 	return &Auth{authService}
 }
 
+// @Summary      Creates new account and sign in
+// @Tags         auth
+// @Accept       json
+// @Produce      json
+// @Param				 payload  body	payloads.RequestSignUp	true	"data of new account"
+// @Success      201  		{object}  swaglib.Envelope{data=models.User}
+// @Response     default  {object}  swaglib.Envelope{data=reply.ErrorPayload}
+// @Router       /auth/sign-up [post]
 func (h *Auth) SignUp(c *gin.Context) {
 	rp := replylib.Client.New(adapter.AdaptGin(c))
 	var payload payloads.RequestSignUp
@@ -34,6 +42,14 @@ func (h *Auth) SignUp(c *gin.Context) {
 	rp.SetCookies(cookies...).Success(user).CreatedJSON()
 }
 
+// @Summary      Sign in to registered account
+// @Tags         auth
+// @Accept       json
+// @Produce      json
+// @Param				 payload  body			payloads.RequestSignIn	true	"data of registered account"
+// @Success      200  		{object}  swaglib.Envelope{data=models.User}
+// @Response     default  {object}  swaglib.Envelope{data=reply.ErrorPayload}
+// @Router       /auth/sign-in [post]
 func (h *Auth) SignIn(c *gin.Context) {
 	rp := replylib.Client.New(adapter.AdaptGin(c))
 	var payload payloads.RequestSignIn
@@ -51,6 +67,12 @@ func (h *Auth) SignIn(c *gin.Context) {
 	rp.SetCookies(cookies...).Success(user).OkJSON()
 }
 
+// @Summary      Sign out from session
+// @Tags         auth
+// @Accept       json
+// @Produce      json
+// @Success      200  		{object}  swaglib.Envelope{data=nil}
+// @Router       /auth/sign-out [post]
 func (h *Auth) SignOut(c *gin.Context) {
 	rp := replylib.Client.New(adapter.AdaptGin(c))
 	cookies := h.authService.ApplyContext(c).SignOut()

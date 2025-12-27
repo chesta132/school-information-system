@@ -1,0 +1,1062 @@
+basePath: /api
+definitions:
+  models.Admin:
+    properties:
+      created_at:
+        type: string
+      employee_id:
+        type: string
+      id:
+        type: string
+      joined_at:
+        type: string
+      staff_role:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  models.Class:
+    properties:
+      created_at:
+        type: string
+      form_teacher:
+        $ref: '#/definitions/models.Teacher'
+      id:
+        type: string
+      name:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  models.ID:
+    properties:
+      id:
+        type: string
+    type: object
+  models.Parent:
+    properties:
+      created_at:
+        type: string
+      email:
+        type: string
+      full_name:
+        type: string
+      gender:
+        allOf:
+        - $ref: '#/definitions/models.UserGender'
+        description: '"male", "female"'
+      id:
+        type: string
+      phone:
+        description: phone number
+        type: string
+      updated_at:
+        type: string
+    type: object
+  models.Permission:
+    properties:
+      actions:
+        description: '[]("create", "read", "update", "delete")'
+        items:
+          $ref: '#/definitions/models.PermissionAction'
+        type: array
+      created_at:
+        type: string
+      description:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      resource:
+        $ref: '#/definitions/models.PermissionResource'
+      updated_at:
+        type: string
+    type: object
+  models.PermissionAction:
+    enum:
+    - create
+    - read
+    - update
+    - delete
+    type: string
+    x-enum-varnames:
+    - ActionCreate
+    - ActionRead
+    - ActionUpdate
+    - ActionDelete
+  models.PermissionResource:
+    enum:
+    - role
+    - permission
+    type: string
+    x-enum-varnames:
+    - ResourceRole
+    - ResourcePermission
+  models.Student:
+    properties:
+      class:
+        $ref: '#/definitions/models.Class'
+      created_at:
+        type: string
+      id:
+        type: string
+      nisn:
+        type: string
+      parents:
+        items:
+          $ref: '#/definitions/models.Parent'
+        type: array
+      updated_at:
+        type: string
+    type: object
+  models.Subject:
+    properties:
+      created_at:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  models.Teacher:
+    properties:
+      created_at:
+        type: string
+      employee_id:
+        type: string
+      id:
+        type: string
+      joined_at:
+        type: string
+      nuptk:
+        type: string
+      subjects:
+        items:
+          $ref: '#/definitions/models.Subject'
+        type: array
+      updated_at:
+        type: string
+    type: object
+  models.User:
+    properties:
+      archived_at:
+        type: string
+      created_at:
+        type: string
+      email:
+        description: auth username
+        type: string
+      full_name:
+        type: string
+      gender:
+        allOf:
+        - $ref: '#/definitions/models.UserGender'
+        description: '"male", "female"'
+      id:
+        type: string
+      phone:
+        description: phone number
+        type: string
+      role:
+        allOf:
+        - $ref: '#/definitions/models.UserRole'
+        description: '"student", "teacher", "admin", "unsetted"'
+      updated_at:
+        type: string
+    type: object
+  models.UserGender:
+    enum:
+    - male
+    - female
+    type: string
+    x-enum-varnames:
+    - GenderMale
+    - GenderFemale
+  models.UserRole:
+    enum:
+    - student
+    - teacher
+    - admin
+    - unsetted
+    type: string
+    x-enum-varnames:
+    - RoleStudent
+    - RoleTeacher
+    - RoleAdmin
+    - RoleUnsetted
+  payloads.RequestCreatePermission:
+    properties:
+      actions:
+        items:
+          $ref: '#/definitions/models.PermissionAction'
+        minItems: 1
+        type: array
+      description:
+        minLength: 10
+        type: string
+      name:
+        minLength: 10
+        type: string
+      resource:
+        allOf:
+        - $ref: '#/definitions/models.PermissionResource'
+        enum:
+        - role
+        - permission
+    required:
+    - actions
+    - description
+    - name
+    - resource
+    type: object
+  payloads.RequestGrantPermission:
+    properties:
+      permission_id:
+        type: string
+      target_id:
+        type: string
+    required:
+    - permission_id
+    - target_id
+    type: object
+  payloads.RequestInitiateAdmin:
+    properties:
+      employee_id:
+        type: string
+      joined_at:
+        type: string
+      key:
+        type: string
+      staff_role:
+        type: string
+      target_id:
+        type: string
+    required:
+    - employee_id
+    - joined_at
+    - key
+    - staff_role
+    - target_id
+    type: object
+  payloads.RequestRevokePermission:
+    properties:
+      permission_id:
+        type: string
+      target_id:
+        type: string
+    required:
+    - permission_id
+    - target_id
+    type: object
+  payloads.RequestSetRole:
+    properties:
+      admin_data:
+        $ref: '#/definitions/payloads.RequestSetRoleAdmin'
+      student_data:
+        $ref: '#/definitions/payloads.RequestSetRoleStudent'
+      target_id:
+        type: string
+      target_role:
+        allOf:
+        - $ref: '#/definitions/models.UserRole'
+        enum:
+        - student
+        - teacher
+        - admin
+      teacher_data:
+        $ref: '#/definitions/payloads.RequestSetRoleTeacher'
+    required:
+    - target_id
+    - target_role
+    type: object
+  payloads.RequestSetRoleAdmin:
+    properties:
+      employee_id:
+        type: string
+      joined_at:
+        type: string
+      staff_role:
+        type: string
+    required:
+    - employee_id
+    - joined_at
+    - staff_role
+    type: object
+  payloads.RequestSetRoleStudent:
+    properties:
+      class_id:
+        type: string
+      nisn:
+        type: string
+      parent_ids:
+        items:
+          type: string
+        maxItems: 2
+        minItems: 2
+        type: array
+    required:
+    - class_id
+    - nisn
+    - parent_ids
+    type: object
+  payloads.RequestSetRoleTeacher:
+    properties:
+      employee_id:
+        type: string
+      joined_at:
+        type: string
+      nuptk:
+        type: string
+      subject_ids:
+        items:
+          type: string
+        type: array
+    required:
+    - employee_id
+    - joined_at
+    - nuptk
+    - subject_ids
+    type: object
+  payloads.RequestSignIn:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+      remember_me:
+        type: boolean
+    required:
+    - email
+    - password
+    type: object
+  payloads.RequestSignUp:
+    properties:
+      email:
+        type: string
+      full_name:
+        type: string
+      gender:
+        allOf:
+        - $ref: '#/definitions/models.UserGender'
+        enum:
+        - male
+        - female
+      password:
+        minLength: 8
+        type: string
+      phone:
+        type: string
+      remember_me:
+        type: boolean
+    required:
+    - email
+    - full_name
+    - gender
+    - password
+    - phone
+    type: object
+  payloads.RequestUpdatePermission:
+    properties:
+      description:
+        minLength: 10
+        type: string
+      id:
+        type: string
+      name:
+        minLength: 10
+        type: string
+    required:
+    - id
+    type: object
+  reply.ErrorPayload:
+    properties:
+      code:
+        description: Machine-readable error code
+        type: string
+      details:
+        description: Optional debug details
+        type: string
+      fields:
+        description: Fields causing the error (if any)
+        items:
+          type: string
+        type: array
+      message:
+        description: Human-readable message
+        type: string
+    type: object
+  routes.health:
+    properties:
+      database:
+        example: healthy
+        type: string
+      status:
+        example: healthy
+        type: string
+      timestamp:
+        example: 2006-01-02T15:04:05Z07:00
+        type: string
+    type: object
+  swaglib.Envelope:
+    properties:
+      data:
+        x-null-if-{}: true
+      meta:
+        $ref: '#/definitions/swaglib.Meta'
+    type: object
+  swaglib.Info:
+    properties:
+      information:
+        description: information message
+        example: resource successfully updated
+        type: string
+    type: object
+  swaglib.Meta:
+    properties:
+      status:
+        $ref: '#/definitions/swaglib.status'
+    type: object
+  swaglib.Pagination:
+    properties:
+      pagination:
+        properties:
+          current:
+            description: current offset
+            type: integer
+          hasNext:
+            description: true if data more than replied
+            type: boolean
+          next:
+            description: if hasNext is false, next is 0
+            type: integer
+        type: object
+    type: object
+  swaglib.status:
+    enum:
+    - SUCCESS
+    - ERROR
+    type: string
+    x-enum-varnames:
+    - success
+    - error
+host: localhost:8080
+info:
+  contact: {}
+  description: This is an API used for manages school environment.
+  title: School Information System API
+  version: "1.0"
+paths:
+  /admins/initiate:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: access_token
+        in: header
+        name: Cookie
+        type: string
+      - description: refresh_token
+        in: header
+        name: Cookie2
+        required: true
+        type: string
+      - description: data of initiated admin
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/payloads.RequestInitiateAdmin'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/swaglib.Envelope'
+            - properties:
+                data:
+                  allOf:
+                  - $ref: '#/definitions/models.User'
+                  - properties:
+                      admin_profile:
+                        allOf:
+                        - $ref: '#/definitions/models.Admin'
+                        - properties:
+                            permissions:
+                              items:
+                                $ref: '#/definitions/models.Permission'
+                              type: array
+                          type: object
+                    type: object
+                meta:
+                  $ref: '#/definitions/swaglib.Info'
+              type: object
+        default:
+          description: ""
+          schema:
+            allOf:
+            - $ref: '#/definitions/swaglib.Envelope'
+            - properties:
+                data:
+                  $ref: '#/definitions/reply.ErrorPayload'
+              type: object
+      summary: Initiates new admin
+      tags:
+      - admin
+  /admins/set-role:
+    put:
+      consumes:
+      - application/json
+      description: Admin with permission update role resource only
+      parameters:
+      - description: access_token
+        in: header
+        name: Cookie
+        type: string
+      - description: refresh_token
+        in: header
+        name: Cookie2
+        required: true
+        type: string
+      - description: data of targeted user's role, only insert data that match with
+          target_role
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/payloads.RequestSetRole'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: '*_data is match with role'
+          schema:
+            allOf:
+            - $ref: '#/definitions/swaglib.Envelope'
+            - properties:
+                data:
+                  allOf:
+                  - $ref: '#/definitions/models.User'
+                  - properties:
+                      admin_profile:
+                        $ref: '#/definitions/models.Admin'
+                      student_profile:
+                        $ref: '#/definitions/models.Student'
+                      teacher_profile:
+                        $ref: '#/definitions/models.Teacher'
+                    type: object
+                meta:
+                  $ref: '#/definitions/swaglib.Info'
+              type: object
+        default:
+          description: ""
+          schema:
+            allOf:
+            - $ref: '#/definitions/swaglib.Envelope'
+            - properties:
+                data:
+                  $ref: '#/definitions/reply.ErrorPayload'
+              type: object
+      summary: Set another user's role
+      tags:
+      - admin
+  /auth/sign-in:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: data of registered account
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/payloads.RequestSignIn'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/swaglib.Envelope'
+            - properties:
+                data:
+                  $ref: '#/definitions/models.User'
+              type: object
+        default:
+          description: ""
+          schema:
+            allOf:
+            - $ref: '#/definitions/swaglib.Envelope'
+            - properties:
+                data:
+                  $ref: '#/definitions/reply.ErrorPayload'
+              type: object
+      summary: Sign in to registered account
+      tags:
+      - auth
+  /auth/sign-out:
+    post:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/swaglib.Envelope'
+            - properties:
+                data:
+                  type: object
+              type: object
+      summary: Sign out from session
+      tags:
+      - auth
+  /auth/sign-up:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: data of new account
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/payloads.RequestSignUp'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            allOf:
+            - $ref: '#/definitions/swaglib.Envelope'
+            - properties:
+                data:
+                  $ref: '#/definitions/models.User'
+              type: object
+        default:
+          description: ""
+          schema:
+            allOf:
+            - $ref: '#/definitions/swaglib.Envelope'
+            - properties:
+                data:
+                  $ref: '#/definitions/reply.ErrorPayload'
+              type: object
+      summary: Creates new account and sign in
+      tags:
+      - auth
+  /health:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: set 'true' if want to check db status
+        in: query
+        name: dbcheck
+        type: boolean
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/swaglib.Envelope'
+            - properties:
+                data:
+                  $ref: '#/definitions/routes.health'
+              type: object
+        default:
+          description: ""
+          schema:
+            allOf:
+            - $ref: '#/definitions/swaglib.Envelope'
+            - properties:
+                data:
+                  $ref: '#/definitions/reply.ErrorPayload'
+              type: object
+      summary: Check server's health
+      tags:
+      - health
+  /permissions:
+    get:
+      consumes:
+      - application/json
+      description: Admin with permission read permission resource only
+      parameters:
+      - description: access_token
+        in: header
+        name: Cookie
+        type: string
+      - description: refresh_token
+        in: header
+        name: Cookie2
+        required: true
+        type: string
+      - collectionFormat: csv
+        in: query
+        items:
+          enum:
+          - create
+          - read
+          - update
+          - delete
+          type: string
+        name: action
+        type: array
+      - in: query
+        name: offset
+        type: integer
+      - in: query
+        name: q
+        type: string
+      - collectionFormat: csv
+        in: query
+        items:
+          enum:
+          - role
+          - permission
+          type: string
+        name: resource
+        type: array
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              allOf:
+              - $ref: '#/definitions/swaglib.Envelope'
+              - properties:
+                  data:
+                    $ref: '#/definitions/models.Permission'
+                  meta:
+                    $ref: '#/definitions/swaglib.Pagination'
+                type: object
+            type: array
+        default:
+          description: ""
+          schema:
+            allOf:
+            - $ref: '#/definitions/swaglib.Envelope'
+            - properties:
+                data:
+                  $ref: '#/definitions/reply.ErrorPayload'
+              type: object
+      summary: Get existing permissions
+      tags:
+      - permission
+    post:
+      consumes:
+      - application/json
+      description: Admin with permission create permission resource only
+      parameters:
+      - description: access_token
+        in: header
+        name: Cookie
+        type: string
+      - description: refresh_token
+        in: header
+        name: Cookie2
+        required: true
+        type: string
+      - description: data of new permission
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/payloads.RequestCreatePermission'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/swaglib.Envelope'
+            - properties:
+                data:
+                  $ref: '#/definitions/models.Permission'
+                meta:
+                  $ref: '#/definitions/swaglib.Info'
+              type: object
+        default:
+          description: ""
+          schema:
+            allOf:
+            - $ref: '#/definitions/swaglib.Envelope'
+            - properties:
+                data:
+                  $ref: '#/definitions/reply.ErrorPayload'
+              type: object
+      summary: Create new permission combination
+      tags:
+      - permission
+  /permissions/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Admin with permission delete permission resource only. Can not
+        deleet granted permission
+      parameters:
+      - description: access_token
+        in: header
+        name: Cookie
+        type: string
+      - description: refresh_token
+        in: header
+        name: Cookie2
+        required: true
+        type: string
+      - description: permission id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/swaglib.Envelope'
+            - properties:
+                data:
+                  $ref: '#/definitions/models.ID'
+              type: object
+        default:
+          description: ""
+          schema:
+            allOf:
+            - $ref: '#/definitions/swaglib.Envelope'
+            - properties:
+                data:
+                  $ref: '#/definitions/reply.ErrorPayload'
+              type: object
+      summary: Delete existing permission
+      tags:
+      - permission
+    get:
+      consumes:
+      - application/json
+      description: Admin with permission read permission resource only
+      parameters:
+      - description: access_token
+        in: header
+        name: Cookie
+        type: string
+      - description: refresh_token
+        in: header
+        name: Cookie2
+        required: true
+        type: string
+      - description: permission id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/swaglib.Envelope'
+            - properties:
+                data:
+                  $ref: '#/definitions/models.Permission'
+              type: object
+        default:
+          description: ""
+          schema:
+            allOf:
+            - $ref: '#/definitions/swaglib.Envelope'
+            - properties:
+                data:
+                  $ref: '#/definitions/reply.ErrorPayload'
+              type: object
+      summary: Get existing permission with id
+      tags:
+      - permission
+    put:
+      consumes:
+      - application/json
+      description: Admin with permission update permission resource only. Can not
+        update permission seeds
+      parameters:
+      - description: access_token
+        in: header
+        name: Cookie
+        type: string
+      - description: refresh_token
+        in: header
+        name: Cookie2
+        required: true
+        type: string
+      - description: permission id
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: data to update permission
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/payloads.RequestUpdatePermission'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/swaglib.Envelope'
+            - properties:
+                data:
+                  $ref: '#/definitions/models.Permission'
+              type: object
+        default:
+          description: ""
+          schema:
+            allOf:
+            - $ref: '#/definitions/swaglib.Envelope'
+            - properties:
+                data:
+                  $ref: '#/definitions/reply.ErrorPayload'
+              type: object
+      summary: Update existing permission
+      tags:
+      - permission
+  /permissions/grant:
+    put:
+      consumes:
+      - application/json
+      description: Admin with permission update permission resource only. Response
+        granted user
+      parameters:
+      - description: access_token
+        in: header
+        name: Cookie
+        type: string
+      - description: refresh_token
+        in: header
+        name: Cookie2
+        required: true
+        type: string
+      - description: data to grant permission
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/payloads.RequestGrantPermission'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/swaglib.Envelope'
+            - properties:
+                data:
+                  allOf:
+                  - $ref: '#/definitions/models.User'
+                  - properties:
+                      admin_profile:
+                        allOf:
+                        - $ref: '#/definitions/models.Admin'
+                        - properties:
+                            permissions:
+                              items:
+                                $ref: '#/definitions/models.Permission'
+                              type: array
+                          type: object
+                    type: object
+                meta:
+                  $ref: '#/definitions/swaglib.Info'
+              type: object
+        default:
+          description: ""
+          schema:
+            allOf:
+            - $ref: '#/definitions/swaglib.Envelope'
+            - properties:
+                data:
+                  $ref: '#/definitions/reply.ErrorPayload'
+              type: object
+      summary: Grant existing permission to another admin
+      tags:
+      - permission
+  /permissions/revoke:
+    put:
+      consumes:
+      - application/json
+      description: Admin with permission update permission resource only. Response
+        granted user
+      parameters:
+      - description: access_token
+        in: header
+        name: Cookie
+        type: string
+      - description: refresh_token
+        in: header
+        name: Cookie2
+        required: true
+        type: string
+      - description: data to revoke permission
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/payloads.RequestRevokePermission'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/swaglib.Envelope'
+            - properties:
+                data:
+                  allOf:
+                  - $ref: '#/definitions/models.User'
+                  - properties:
+                      admin_profile:
+                        allOf:
+                        - $ref: '#/definitions/models.Admin'
+                        - properties:
+                            permissions:
+                              items:
+                                $ref: '#/definitions/models.Permission'
+                              type: array
+                          type: object
+                    type: object
+                meta:
+                  $ref: '#/definitions/swaglib.Info'
+              type: object
+        default:
+          description: ""
+          schema:
+            allOf:
+            - $ref: '#/definitions/swaglib.Envelope'
+            - properties:
+                data:
+                  $ref: '#/definitions/reply.ErrorPayload'
+              type: object
+      summary: Revoke existing permission of another admin
+      tags:
+      - permission
+swagger: "2.0"
