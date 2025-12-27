@@ -139,7 +139,7 @@ func (h *Permission) UpdatePermission(c *gin.Context) {
 // @Param				 Cookie   header 		string 	false	"access_token"
 // @Param				 Cookie2  header 		string 	true	"refresh_token"
 // @Param 			 id				path 			string  true  "permission id"
-// @Success      200  		{object}  swaglib.Envelope{data=models.ID}
+// @Success      200  		{object}  swaglib.Envelope{data=models.Id}
 // @Response     default  {object}  swaglib.Envelope{data=reply.ErrorPayload}
 // @Router       /permissions/{id} [delete]
 func (h *Permission) DeletePermission(c *gin.Context) {

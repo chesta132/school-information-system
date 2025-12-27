@@ -193,8 +193,10 @@ func (s *ContextedRoleSetter) setRoleTeacher(payload payloads.RequestSetRoleTeac
 		teacher = &models.Teacher{
 			NUPTK:      payload.NUPTK,
 			EmployeeID: payload.EmployeeID,
-			JoinedAt:   payload.JoinedAt,
-			UserID:     user.ID,
+			TimestampJoinTime: models.TimestampJoinTime{
+				JoinedAt: payload.JoinedAt,
+			},
+			UserID: user.ID,
 		}
 		err = teacherRepo.Create(s.ctx, teacher)
 		if err != nil {
@@ -252,8 +254,10 @@ func (s *ContextedRoleSetter) setRoleAdmin(payload payloads.RequestSetRoleAdmin,
 		admin = &models.Admin{
 			StaffRole:  payload.StaffRole,
 			EmployeeID: payload.EmployeeID,
-			JoinedAt:   payload.JoinedAt,
-			UserID:     user.ID,
+			TimestampJoinTime: models.TimestampJoinTime{
+				JoinedAt: payload.JoinedAt,
+			},
+			UserID: user.ID,
 		}
 		return adminRepo.Create(s.ctx, admin)
 	})

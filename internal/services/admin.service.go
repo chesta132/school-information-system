@@ -91,7 +91,9 @@ func (s *ContextedAdmin) initiateAdminInTx(payload payloads.RequestInitiateAdmin
 			StaffRole:  payload.StaffRole,
 			EmployeeID: payload.EmployeeID,
 			UserID:     user.ID,
-			JoinedAt:   payload.JoinedAt,
+			TimestampJoinTime: models.TimestampJoinTime{
+				JoinedAt: payload.JoinedAt,
+			},
 		}
 		err = adminRepo.Create(s.ctx, admin)
 		if err != nil {
