@@ -516,11 +516,13 @@ const docTemplate = `{
                     },
                     {
                         "type": "integer",
+                        "example": 10,
                         "name": "offset",
                         "in": "query"
                     },
                     {
                         "type": "string",
+                        "example": "rol",
                         "name": "q",
                         "in": "query"
                     },
@@ -1428,15 +1430,21 @@ const docTemplate = `{
                     "minItems": 1,
                     "items": {
                         "$ref": "#/definitions/models.PermissionAction"
-                    }
+                    },
+                    "example": [
+                        "update",
+                        "read"
+                    ]
                 },
                 "description": {
                     "type": "string",
-                    "minLength": 10
+                    "minLength": 10,
+                    "example": "permission to set and read role"
                 },
                 "name": {
                     "type": "string",
-                    "minLength": 10
+                    "minLength": 10,
+                    "example": "role setter"
                 },
                 "resource": {
                     "enum": [
@@ -1447,7 +1455,8 @@ const docTemplate = `{
                         {
                             "$ref": "#/definitions/models.PermissionResource"
                         }
-                    ]
+                    ],
+                    "example": "role"
                 }
             }
         },
@@ -1459,10 +1468,12 @@ const docTemplate = `{
             ],
             "properties": {
                 "permission_id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "479b5b5f-81b1-4669-91a5-b5bf69e597c6"
                 },
                 "target_id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "479b5b5f-81b1-4669-91a5-b5bf69e597c6"
                 }
             }
         },
@@ -1477,19 +1488,24 @@ const docTemplate = `{
             ],
             "properties": {
                 "employee_id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "DEV002"
                 },
                 "joined_at": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "2006-01-02T15:04:05Z07:00"
                 },
                 "key": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "super secret"
                 },
                 "staff_role": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "developer"
                 },
                 "target_id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "479b5b5f-81b1-4669-91a5-b5bf69e597c6"
                 }
             }
         },
@@ -1501,10 +1517,12 @@ const docTemplate = `{
             ],
             "properties": {
                 "permission_id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "479b5b5f-81b1-4669-91a5-b5bf69e597c6"
                 },
                 "target_id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "479b5b5f-81b1-4669-91a5-b5bf69e597c6"
                 }
             }
         },
@@ -1516,13 +1534,24 @@ const docTemplate = `{
             ],
             "properties": {
                 "admin_data": {
-                    "$ref": "#/definitions/payloads.RequestSetRoleAdmin"
+                    "description": "empty ig target_role not admin",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/payloads.RequestSetRoleAdmin"
+                        }
+                    ]
                 },
                 "student_data": {
-                    "$ref": "#/definitions/payloads.RequestSetRoleStudent"
+                    "description": "empty ig target_role not student",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/payloads.RequestSetRoleStudent"
+                        }
+                    ]
                 },
                 "target_id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "479b5b5f-81b1-4669-91a5-b5bf69e597c6"
                 },
                 "target_role": {
                     "enum": [
@@ -1537,7 +1566,12 @@ const docTemplate = `{
                     ]
                 },
                 "teacher_data": {
-                    "$ref": "#/definitions/payloads.RequestSetRoleTeacher"
+                    "description": "empty ig target_role not teacher",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/payloads.RequestSetRoleTeacher"
+                        }
+                    ]
                 }
             }
         },
@@ -1550,13 +1584,16 @@ const docTemplate = `{
             ],
             "properties": {
                 "employee_id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "479b5b5f-81b1-4669-91a5-b5bf69e597c6"
                 },
                 "joined_at": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "2006-01-02T15:04:05Z07:00"
                 },
                 "staff_role": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "developer"
                 }
             }
         },
@@ -1569,10 +1606,12 @@ const docTemplate = `{
             ],
             "properties": {
                 "class_id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "479b5b5f-81b1-4669-91a5-b5bf69e597c6"
                 },
                 "nisn": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "0091913711"
                 },
                 "parent_ids": {
                     "type": "array",
@@ -1580,7 +1619,11 @@ const docTemplate = `{
                     "minItems": 2,
                     "items": {
                         "type": "string"
-                    }
+                    },
+                    "example": [
+                        "479b5b5f-81b1-4669-91a5-b5bf69e597c6",
+                        "479b5b5f-81b1-4669-91a5-b5bf69e597c7"
+                    ]
                 }
             }
         },
@@ -1594,19 +1637,26 @@ const docTemplate = `{
             ],
             "properties": {
                 "employee_id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "479b5b5f-81b1-4669-91a5-b5bf69e597c6"
                 },
                 "joined_at": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "2006-01-02T15:04:05Z07:00"
                 },
                 "nuptk": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "1234567890123456"
                 },
                 "subject_ids": {
                     "type": "array",
                     "items": {
                         "type": "string"
-                    }
+                    },
+                    "example": [
+                        "479b5b5f-81b1-4669-91a5-b5bf69e597c6",
+                        "479b5b5f-81b1-4669-91a5-b5bf69e597c7"
+                    ]
                 }
             }
         },
@@ -1618,10 +1668,12 @@ const docTemplate = `{
             ],
             "properties": {
                 "email": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "chestaardi4@gmail.com"
                 },
                 "password": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "super.secret871798"
                 },
                 "remember_me": {
                     "type": "boolean"
@@ -1639,10 +1691,12 @@ const docTemplate = `{
             ],
             "properties": {
                 "email": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "chestaardi4@gmail.com"
                 },
                 "full_name": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "Chesta Ardiona"
                 },
                 "gender": {
                     "enum": [
@@ -1657,10 +1711,12 @@ const docTemplate = `{
                 },
                 "password": {
                     "type": "string",
-                    "minLength": 8
+                    "minLength": 8,
+                    "example": "super.secret871798"
                 },
                 "phone": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "+6281234567890"
                 },
                 "remember_me": {
                     "type": "boolean"
@@ -1675,14 +1731,17 @@ const docTemplate = `{
             "properties": {
                 "description": {
                     "type": "string",
-                    "minLength": 10
+                    "minLength": 10,
+                    "example": "updated desc"
                 },
                 "id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "479b5b5f-81b1-4669-91a5-b5bf69e597c6"
                 },
                 "name": {
                     "type": "string",
-                    "minLength": 10
+                    "minLength": 10,
+                    "example": "updated name"
                 }
             }
         },

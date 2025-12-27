@@ -221,14 +221,19 @@ definitions:
   payloads.RequestCreatePermission:
     properties:
       actions:
+        example:
+        - update
+        - read
         items:
           $ref: '#/definitions/models.PermissionAction'
         minItems: 1
         type: array
       description:
+        example: permission to set and read role
         minLength: 10
         type: string
       name:
+        example: role setter
         minLength: 10
         type: string
       resource:
@@ -237,6 +242,7 @@ definitions:
         enum:
         - role
         - permission
+        example: role
     required:
     - actions
     - description
@@ -246,8 +252,10 @@ definitions:
   payloads.RequestGrantPermission:
     properties:
       permission_id:
+        example: 479b5b5f-81b1-4669-91a5-b5bf69e597c6
         type: string
       target_id:
+        example: 479b5b5f-81b1-4669-91a5-b5bf69e597c6
         type: string
     required:
     - permission_id
@@ -256,14 +264,19 @@ definitions:
   payloads.RequestInitiateAdmin:
     properties:
       employee_id:
+        example: DEV002
         type: string
       joined_at:
+        example: 2006-01-02T15:04:05Z07:00
         type: string
       key:
+        example: super secret
         type: string
       staff_role:
+        example: developer
         type: string
       target_id:
+        example: 479b5b5f-81b1-4669-91a5-b5bf69e597c6
         type: string
     required:
     - employee_id
@@ -275,8 +288,10 @@ definitions:
   payloads.RequestRevokePermission:
     properties:
       permission_id:
+        example: 479b5b5f-81b1-4669-91a5-b5bf69e597c6
         type: string
       target_id:
+        example: 479b5b5f-81b1-4669-91a5-b5bf69e597c6
         type: string
     required:
     - permission_id
@@ -285,10 +300,15 @@ definitions:
   payloads.RequestSetRole:
     properties:
       admin_data:
-        $ref: '#/definitions/payloads.RequestSetRoleAdmin'
+        allOf:
+        - $ref: '#/definitions/payloads.RequestSetRoleAdmin'
+        description: empty ig target_role not admin
       student_data:
-        $ref: '#/definitions/payloads.RequestSetRoleStudent'
+        allOf:
+        - $ref: '#/definitions/payloads.RequestSetRoleStudent'
+        description: empty ig target_role not student
       target_id:
+        example: 479b5b5f-81b1-4669-91a5-b5bf69e597c6
         type: string
       target_role:
         allOf:
@@ -298,7 +318,9 @@ definitions:
         - teacher
         - admin
       teacher_data:
-        $ref: '#/definitions/payloads.RequestSetRoleTeacher'
+        allOf:
+        - $ref: '#/definitions/payloads.RequestSetRoleTeacher'
+        description: empty ig target_role not teacher
     required:
     - target_id
     - target_role
@@ -306,10 +328,13 @@ definitions:
   payloads.RequestSetRoleAdmin:
     properties:
       employee_id:
+        example: 479b5b5f-81b1-4669-91a5-b5bf69e597c6
         type: string
       joined_at:
+        example: 2006-01-02T15:04:05Z07:00
         type: string
       staff_role:
+        example: developer
         type: string
     required:
     - employee_id
@@ -319,10 +344,15 @@ definitions:
   payloads.RequestSetRoleStudent:
     properties:
       class_id:
+        example: 479b5b5f-81b1-4669-91a5-b5bf69e597c6
         type: string
       nisn:
+        example: "0091913711"
         type: string
       parent_ids:
+        example:
+        - 479b5b5f-81b1-4669-91a5-b5bf69e597c6
+        - 479b5b5f-81b1-4669-91a5-b5bf69e597c7
         items:
           type: string
         maxItems: 2
@@ -336,12 +366,18 @@ definitions:
   payloads.RequestSetRoleTeacher:
     properties:
       employee_id:
+        example: 479b5b5f-81b1-4669-91a5-b5bf69e597c6
         type: string
       joined_at:
+        example: 2006-01-02T15:04:05Z07:00
         type: string
       nuptk:
+        example: "1234567890123456"
         type: string
       subject_ids:
+        example:
+        - 479b5b5f-81b1-4669-91a5-b5bf69e597c6
+        - 479b5b5f-81b1-4669-91a5-b5bf69e597c7
         items:
           type: string
         type: array
@@ -354,8 +390,10 @@ definitions:
   payloads.RequestSignIn:
     properties:
       email:
+        example: chestaardi4@gmail.com
         type: string
       password:
+        example: super.secret871798
         type: string
       remember_me:
         type: boolean
@@ -366,8 +404,10 @@ definitions:
   payloads.RequestSignUp:
     properties:
       email:
+        example: chestaardi4@gmail.com
         type: string
       full_name:
+        example: Chesta Ardiona
         type: string
       gender:
         allOf:
@@ -376,9 +416,11 @@ definitions:
         - male
         - female
       password:
+        example: super.secret871798
         minLength: 8
         type: string
       phone:
+        example: "+6281234567890"
         type: string
       remember_me:
         type: boolean
@@ -392,11 +434,14 @@ definitions:
   payloads.RequestUpdatePermission:
     properties:
       description:
+        example: updated desc
         minLength: 10
         type: string
       id:
+        example: 479b5b5f-81b1-4669-91a5-b5bf69e597c6
         type: string
       name:
+        example: updated name
         minLength: 10
         type: string
     required:
@@ -759,10 +804,12 @@ paths:
           type: string
         name: action
         type: array
-      - in: query
+      - example: 10
+        in: query
         name: offset
         type: integer
-      - in: query
+      - example: rol
+        in: query
         name: q
         type: string
       - collectionFormat: csv
