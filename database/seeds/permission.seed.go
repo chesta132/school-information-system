@@ -27,14 +27,13 @@ var PermissionSeeds = []models.Permission{
 	},
 }
 
-var PermissionSeedNames = slicelib.Map(PermissionSeeds, func(idx int, perm models.Permission) string { return perm.Name })
-var PermissionSeedIDs = make(map[string]string, len(PermissionSeeds))
+var PermissionSeedIDs = make(map[string]struct{}, len(PermissionSeeds))
 
 func getNonExistingPermissionSeeds(db *gorm.DB) ([]models.Permission, error) {
 	var existingNames []string
 	err := db.Model(&models.Permission{}).
 		Select("name").
-		Where("name IN ?", PermissionSeedNames).
+		Where("name IN ?", slicelib.Map(PermissionSeeds, func(idx int, perm models.Permission) string { return perm.Name })).
 		Pluck("name", &existingNames).Error
 
 	if err != nil {
@@ -52,7 +51,13 @@ func getNonExistingPermissionSeeds(db *gorm.DB) ([]models.Permission, error) {
 }
 
 func populateSeedIDs(db *gorm.DB) error {
-	err := db.Model(&models.Permission{}).Where("name IN ?", PermissionSeedNames).Find(&PermissionSeeds).Error
+	err := db.
+		Model(&models.Permission{}).
+		Where(
+			"name IN ?",
+			slicelib.Map(PermissionSeeds, func(idx int, perm models.Permission) string { return perm.Name }),
+		).
+		Find(&PermissionSeeds).Error
 	if err != nil {
 		return err
 	}
@@ -64,7 +69,7 @@ func populateSeedIDs(db *gorm.DB) error {
 
 	for i, perm := range PermissionSeeds {
 		PermissionSeeds[i] = perm
-		PermissionSeedIDs[perm.Name] = perm.ID
+		PermissionSeedIDs[perm.ID] = struct{}{}
 	}
 
 	return nil
@@ -85,4 +90,13 @@ func PlantPermissions(db *gorm.DB) error {
 	}
 
 	return populateSeedIDs(db)
+}
+
+func IsPermissionSeed(permissions ...*models.Permission) bool {
+	for _, perm := range permissions {
+		if _, ok := PermissionSeedIDs[perm.ID]; ok {
+			return true
+		}
+	}
+	return false
 }

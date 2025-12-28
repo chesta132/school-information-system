@@ -3,6 +3,7 @@ package services
 import (
 	"context"
 	"errors"
+	"fmt"
 	"school-information-system/config"
 	"school-information-system/database/seeds"
 	"school-information-system/internal/libs/errorlib"
@@ -158,11 +159,9 @@ func (s *ContextedPermission) UpdatePermission(payload payloads.RequestUpdatePer
 		permissionRepo := s.permissionRepo.WithTx(tx)
 
 		// check if permission is permission seeds
-		for _, perm := range seeds.PermissionSeeds {
-			if perm.ID == payload.ID {
-				errPayload = &replylib.ErrPermissionImmutable
-				return errors.New(errPayload.Message)
-			}
+		if seeds.IsPermissionSeed(&models.Permission{Id: models.Id{ID: payload.ID}}) {
+			errPayload = &replylib.ErrPermissionImmutable
+			return errors.New(errPayload.Message)
 		}
 
 		// check name uniques and permission presence
@@ -213,11 +212,9 @@ func (s *ContextedPermission) DeletePermission(permissionID string) (errPayload 
 		permissionRepo := s.permissionRepo.WithTx(tx)
 
 		// check if permission is permission seeds
-		for _, perm := range seeds.PermissionSeeds {
-			if perm.ID == permissionID {
-				errPayload = &replylib.ErrPermissionImmutable
-				return errors.New(errPayload.Message)
-			}
+		if seeds.IsPermissionSeed(&models.Permission{Id: models.Id{ID: permissionID}}) {
+			errPayload = &replylib.ErrPermissionImmutable
+			return errors.New(errPayload.Message)
 		}
 
 		// check is permission have relation with another admin
@@ -264,7 +261,7 @@ func (s *ContextedPermission) GrantPermission(payload payloads.RequestGrantPermi
 			return err
 		}
 		if permission != nil {
-			errPayload = &reply.ErrorPayload{Code: replylib.CodeConflict, Message: errorlib.ErrTargetHavePermission.Error()}
+			errPayload = &reply.ErrorPayload{Code: replylib.CodeBadRequest, Message: errorlib.ErrTargetHavePermission.Error()}
 			return errorlib.ErrTargetHavePermission
 		}
 
@@ -301,8 +298,25 @@ func (s *ContextedPermission) RevokePermission(payload payloads.RequestRevokePer
 			return err
 		}
 		if permission == nil {
-			errPayload = &reply.ErrorPayload{Code: replylib.CodeUnprocessableEntity, Message: errorlib.ErrTargetDoesntHavePerm.Error()}
+			errPayload = &reply.ErrorPayload{Code: replylib.CodeBadRequest, Message: errorlib.ErrTargetDoesntHavePerm.Error()}
 			return errorlib.ErrTargetDoesntHavePerm
+		}
+
+		// make sure if permission is seed, it has another granted admin
+		if seeds.IsPermissionSeed(permission) {
+			selfVal := s.c.MustGet("user")
+			self, _ := selfVal.(models.User)
+			var exists bool
+			tx.Raw(
+				"SELECT EXISTS (SELECT 1 FROM admin_permissions WHERE admin_id != ? AND permission_id = ? LIMIT 1)",
+				self.AdminProfile.ID,
+				permission.ID,
+			).Scan(&exists)
+			if !exists {
+				err = fmt.Errorf("%w to revoke", errorlib.ErrPermHaventAnotherAdmin)
+				errPayload = &reply.ErrorPayload{Code: replylib.CodeConflict, Message: err.Error()}
+				return err
+			}
 		}
 
 		// revoke permission
