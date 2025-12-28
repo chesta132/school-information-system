@@ -306,12 +306,18 @@ func (s *ContextedPermission) RevokePermission(payload payloads.RequestRevokePer
 		if seeds.IsPermissionSeed(permission) {
 			selfVal := s.c.MustGet("user")
 			self, _ := selfVal.(models.User)
+
 			var exists bool
-			tx.Raw(
+			err = tx.Raw(
 				"SELECT EXISTS (SELECT 1 FROM admin_permissions WHERE admin_id != ? AND permission_id = ? LIMIT 1)",
 				self.AdminProfile.ID,
 				permission.ID,
-			).Scan(&exists)
+			).Scan(&exists).Error
+			if err != nil {
+				errPayload = errorlib.MakeServerError(err)
+				return err
+			}
+
 			if !exists {
 				err = fmt.Errorf("%w to revoke", errorlib.ErrPermHaventAnotherAdmin)
 				errPayload = &reply.ErrorPayload{Code: replylib.CodeConflict, Message: err.Error()}
