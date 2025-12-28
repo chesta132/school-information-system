@@ -30,7 +30,7 @@ func NewAdmin(adminService *services.Admin, roleSetterService *services.RoleSett
 // @Response     default  {object}  swaglib.Envelope{data=reply.ErrorPayload}
 // @Router       /admins/initiate [post]
 func (h *Admin) InitiateAdmin(c *gin.Context) {
-	rp := replylib.Client.New(adapter.AdaptGin(c))
+	rp := replylib.Client.Use(adapter.AdaptGin(c))
 	var payload payloads.RequestInitiateAdmin
 	if err := c.ShouldBindJSON(&payload); err != nil {
 		rp.Error(replylib.CodeBadRequest, err.Error()).FailJSON()
@@ -57,7 +57,7 @@ func (h *Admin) InitiateAdmin(c *gin.Context) {
 // @Response     default  {object}  swaglib.Envelope{data=reply.ErrorPayload}
 // @Router       /admins/set-role [put]
 func (h *Admin) SetRole(c *gin.Context) {
-	rp := replylib.Client.New(adapter.AdaptGin(c))
+	rp := replylib.Client.Use(adapter.AdaptGin(c))
 	var payload payloads.RequestSetRole
 	if err := c.ShouldBindJSON(&payload); err != nil {
 		rp.Error(replylib.CodeBadRequest, err.Error()).FailJSON()

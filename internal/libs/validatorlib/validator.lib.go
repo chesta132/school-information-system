@@ -1,12 +1,9 @@
 package validatorlib
 
 import (
-	"errors"
 	"fmt"
 	"reflect"
 	"school-information-system/internal/libs/replylib"
-	"school-information-system/internal/libs/slicelib"
-	"slices"
 	"strings"
 
 	"github.com/chesta132/goreply/reply"
@@ -72,13 +69,13 @@ func buildPrefixMap(val reflect.Value, parentPrefix string, prefixMap map[string
 	}
 }
 
-func TranslateError(err error, prefixMap map[string]string) (error, validator.ValidationErrors) {
+func TranslateError(err error, prefixMap map[string]string) reply.FieldsError {
 	valErrs, ok := err.(validator.ValidationErrors)
 	if !ok {
-		return err, nil
+		return nil
 	}
-	messages := make([]string, 0, len(valErrs))
-	requiredErrs := make([]string, 0, len(valErrs))
+	fields := make(reply.FieldsError, len(valErrs))
+	insertedErr := make(map[string]struct{}, len(valErrs))
 
 	for _, err := range valErrs {
 		// get prefix from map if exists
@@ -89,17 +86,19 @@ func TranslateError(err error, prefixMap map[string]string) (error, validator.Va
 
 		// handle required error
 		if err.Tag() == "required" {
-			messages = append(messages, fmt.Sprintf("%s is required", fieldName))
-			requiredErrs = append(requiredErrs, fieldName)
+			fields[fieldName] = fmt.Sprintf("%s is required", fieldName)
+			insertedErr[fieldName] = struct{}{}
 		}
 
 		// handle other validation errors
-		if !slices.Contains(requiredErrs, fieldName) {
+		if _, ok := insertedErr[fieldName]; !ok {
 			switch err.Tag() {
 			case "email":
-				messages = append(messages, fmt.Sprintf("%s is not valid email", fieldName))
+				fields[fieldName] = fmt.Sprintf("%s is not valid email", fieldName)
+				insertedErr[fieldName] = struct{}{}
 			case "oneof":
-				messages = append(messages, fmt.Sprintf("%s is not a valid enum of [%s]", fieldName, err.Param()))
+				fields[fieldName] = fmt.Sprintf("%s is not a valid enum of [%s]", fieldName, err.Param())
+				insertedErr[fieldName] = struct{}{}
 			case "min", "max":
 				suffix := ""
 				switch err.Kind() {
@@ -113,17 +112,20 @@ func TranslateError(err error, prefixMap map[string]string) (error, validator.Va
 				if err.Tag() == "max" {
 					operator = "at most"
 				}
-				messages = append(messages, fmt.Sprintf("%s must be %s %s%s", fieldName, operator, err.Param(), suffix))
+				fields[fieldName] = fmt.Sprintf("%s must be %s %s%s", fieldName, operator, err.Param(), suffix)
+				insertedErr[fieldName] = struct{}{}
 			case "required_if":
 				targetField, targetValue, _ := strings.Cut(err.Param(), " ")
-				messages = append(messages, fmt.Sprintf("%s is required if value of %s is %s", fieldName, targetField, targetValue))
+				fields[fieldName] = fmt.Sprintf("%s is required if value of %s is %s", fieldName, targetField, targetValue)
+				insertedErr[fieldName] = struct{}{}
 			case "required_without":
-				messages = append(messages, fmt.Sprintf("%s required if %s empty", fieldName, err.Param()))
+				fields[fieldName] = fmt.Sprintf("%s required if %s empty", fieldName, err.Param())
+				insertedErr[fieldName] = struct{}{}
 			}
 		}
 	}
 
-	return errors.New(strings.Join(messages, ", ")), valErrs
+	return fields
 }
 
 func ValidateStructToReply(s any) *reply.ErrorPayload {
@@ -132,21 +134,11 @@ func ValidateStructToReply(s any) *reply.ErrorPayload {
 		prefixMap := extractPrefixMap(s)
 
 		// translate validator errors with prefix
-		err, valErrs := TranslateError(err, prefixMap)
-
-		// collect field names with prefix applied
-		fields := slicelib.Unique(slicelib.Map(valErrs, func(i int, val validator.FieldError) string {
-			fieldName := val.Field()
-			if prefix, ok := prefixMap[fieldName]; ok {
-				return prefix + fieldName
-			}
-			return fieldName
-		}))
+		fields := TranslateError(err, prefixMap)
 
 		return &reply.ErrorPayload{
 			Code:    replylib.CodeBadRequest,
 			Message: "invalid payload",
-			Details: err.Error(),
 			Fields:  fields,
 		}
 	}

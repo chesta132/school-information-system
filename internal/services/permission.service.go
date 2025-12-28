@@ -103,7 +103,7 @@ func (s *ContextedPermission) CreatePermission(payload payloads.RequestCreatePer
 func (s *ContextedPermission) GetPermission(permissionID string) (permission *models.Permission, errPayload *reply.ErrorPayload) {
 	perm, err := s.permissionRepo.GetByID(s.ctx, permissionID)
 	if err != nil {
-		errPayload = errorlib.MakeNotFound(err, "permission not found", []string{})
+		errPayload = errorlib.MakeNotFound(err, "permission not found", nil)
 	}
 	permission = &perm
 	return
@@ -268,7 +268,11 @@ func (s *ContextedPermission) GrantPermission(payload payloads.RequestGrantPermi
 		// get permission to grant
 		perm, err := permissionRepo.GetByID(s.ctx, payload.PermissionID)
 		if err != nil {
-			errPayload = errorlib.MakeNotFound(gorm.ErrRecordNotFound, "permission not found", []string{"permission_id"})
+			errPayload = errorlib.MakeNotFound(
+				gorm.ErrRecordNotFound,
+				"permission not found",
+				reply.FieldsError{"permission_id": "permission with this ID not found"},
+			)
 			return err
 		}
 		permission = &perm

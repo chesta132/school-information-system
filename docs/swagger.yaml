@@ -456,13 +456,16 @@ definitions:
         description: Optional debug details
         type: string
       fields:
+        allOf:
+        - $ref: '#/definitions/reply.FieldsError'
         description: Fields causing the error (if any)
-        items:
-          type: string
-        type: array
       message:
         description: Human-readable message
         type: string
+    type: object
+  reply.FieldsError:
+    additionalProperties:
+      type: string
     type: object
   routes.health:
     properties:
@@ -492,8 +495,16 @@ definitions:
     type: object
   swaglib.Meta:
     properties:
+      debug:
+        description: please dont process debug fields because it inconsistently
+        example: inconsistent value
+        type: string
       status:
         $ref: '#/definitions/swaglib.status'
+      timestamp:
+        description: in UTC
+        example: 2006-01-02T15:04:05Z07:00
+        type: string
     type: object
   swaglib.Pagination:
     properties:
@@ -502,7 +513,7 @@ definitions:
           current:
             description: current offset
             type: integer
-          hasNext:
+          has_next:
             description: true if data more than replied
             type: boolean
           next:

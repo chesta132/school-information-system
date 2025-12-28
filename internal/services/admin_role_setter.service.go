@@ -72,7 +72,11 @@ func (s *ContextedRoleSetter) SetRole(payload payloads.RequestSetRole) (*models.
 		return &user, err
 	}
 
-	return nil, &reply.ErrorPayload{Code: replylib.CodeBadRequest, Message: "invalid target role", Fields: []string{"target_role"}}
+	return nil, &reply.ErrorPayload{
+		Code:    replylib.CodeBadRequest,
+		Message: "invalid target role",
+		Fields:  reply.FieldsError{"target_role": "please select a valid role"},
+	}
 }
 
 func (s *ContextedRoleSetter) setRoleStudent(payload payloads.RequestSetRoleStudent, user models.User) (student *models.Student, errPayload *reply.ErrorPayload) {
@@ -95,7 +99,11 @@ func (s *ContextedRoleSetter) setRoleStudent(payload payloads.RequestSetRoleStud
 			return err
 		}
 		if !classExists {
-			errPayload = errorlib.MakeNotFound(gorm.ErrRecordNotFound, "class not found", []string{"class_id"})
+			errPayload = errorlib.MakeNotFound(
+				gorm.ErrRecordNotFound,
+				"class not found",
+				reply.FieldsError{"class_id": "class with this ID not found"},
+			)
 			return gorm.ErrRecordNotFound
 		}
 
@@ -161,7 +169,11 @@ func (s *ContextedRoleSetter) setRoleTeacher(payload payloads.RequestSetRoleTeac
 		if subjectIDsLen, subjectsLen := len(payload.SubjectIDs), len(subjects); subjectIDsLen > subjectsLen {
 			notFound := subjectIDsLen - subjectsLen
 			err := fmt.Errorf("%d subject(s) not found", notFound)
-			errPayload = errorlib.MakeNotFound(gorm.ErrRecordNotFound, err.Error(), []string{"subject_ids"})
+			errPayload = errorlib.MakeNotFound(
+				gorm.ErrRecordNotFound,
+				"subject(s) not found",
+				reply.FieldsError{"subject_ids": err.Error()},
+			)
 			return err
 		}
 
@@ -172,11 +184,11 @@ func (s *ContextedRoleSetter) setRoleTeacher(payload payloads.RequestSetRoleTeac
 			return err
 		}
 		if teacherExist {
-			err := errors.New("other teacher with same NUTPK or employee id already exist")
+			err := errors.New("other teacher with same NUTPK or employee ID already exist")
 			errPayload = &reply.ErrorPayload{
 				Code:    replylib.CodeConflict,
-				Message: err.Error(),
-				Fields:  []string{"nuptk", "employee_id"},
+				Message: "NUPTK and employee ID unique conflict",
+				Fields:  reply.FieldsError{"nuptk": err.Error(), "employee_id": err.Error()},
 			}
 			return err
 		}
@@ -235,8 +247,8 @@ func (s *ContextedRoleSetter) setRoleAdmin(payload payloads.RequestSetRoleAdmin,
 			err := errors.New("other admin with same employee id already exist")
 			errPayload = &reply.ErrorPayload{
 				Code:    replylib.CodeConflict,
-				Message: err.Error(),
-				Fields:  []string{"employee_id"},
+				Message: "employee ID unique conflict",
+				Fields:  reply.FieldsError{"employee_id": err.Error()},
 			}
 			return err
 		}

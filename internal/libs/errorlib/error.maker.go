@@ -12,8 +12,8 @@ func MakeUserByTargetIDNotFound(err error) *reply.ErrorPayload {
 	if errors.Is(err, gorm.ErrRecordNotFound) {
 		return &reply.ErrorPayload{
 			Code:    replylib.CodeNotFound,
-			Message: "user with targeted id doesn't exist",
-			Fields:  []string{"target_id"},
+			Message: "user not found",
+			Fields:  reply.FieldsError{"target_id": "user with targeted id doesn't exist"},
 		}
 	}
 	return &reply.ErrorPayload{
@@ -22,7 +22,7 @@ func MakeUserByTargetIDNotFound(err error) *reply.ErrorPayload {
 	}
 }
 
-func MakeNotFound(err error, message string, fields []string) *reply.ErrorPayload {
+func MakeNotFound(err error, message string, fields reply.FieldsError) *reply.ErrorPayload {
 	if errors.Is(err, gorm.ErrRecordNotFound) {
 		return &reply.ErrorPayload{
 			Code:    replylib.CodeNotFound,

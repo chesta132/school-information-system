@@ -34,7 +34,7 @@ func NewPermission(permService *services.Permission) *Permission {
 // @Response     default  {object}  swaglib.Envelope{data=reply.ErrorPayload}
 // @Router       /permissions [post]
 func (h *Permission) CreatePermission(c *gin.Context) {
-	rp := replylib.Client.New(adapter.AdaptGin(c))
+	rp := replylib.Client.Use(adapter.AdaptGin(c))
 	var payload payloads.RequestCreatePermission
 	if err := c.ShouldBindJSON(&payload); err != nil {
 		rp.Error(replylib.CodeBadRequest, err.Error()).FailJSON()
@@ -64,7 +64,7 @@ func (h *Permission) CreatePermission(c *gin.Context) {
 // @Response     default  {object}  swaglib.Envelope{data=reply.ErrorPayload}
 // @Router       /permissions/{id} [get]
 func (h *Permission) GetPermission(c *gin.Context) {
-	rp := replylib.Client.New(adapter.AdaptGin(c))
+	rp := replylib.Client.Use(adapter.AdaptGin(c))
 	id := c.Param("id")
 
 	perm, errPayload := h.permService.ApplyContext(c).GetPermission(id)
@@ -88,7 +88,7 @@ func (h *Permission) GetPermission(c *gin.Context) {
 // @Response     default  {object}  swaglib.Envelope{data=reply.ErrorPayload}
 // @Router       /permissions [get]
 func (h *Permission) GetPermissions(c *gin.Context) {
-	rp := replylib.Client.New(adapter.AdaptGin(c))
+	rp := replylib.Client.Use(adapter.AdaptGin(c))
 	var payload payloads.RequestGetPermissions
 	c.ShouldBindQuery(&payload)
 
@@ -114,7 +114,7 @@ func (h *Permission) GetPermissions(c *gin.Context) {
 // @Response     default  {object}  swaglib.Envelope{data=reply.ErrorPayload}
 // @Router       /permissions/{id} [put]
 func (h *Permission) UpdatePermission(c *gin.Context) {
-	rp := replylib.Client.New(adapter.AdaptGin(c))
+	rp := replylib.Client.Use(adapter.AdaptGin(c))
 	var payload payloads.RequestUpdatePermission
 	if err := c.ShouldBindJSON(&payload); err != nil {
 		rp.Error(replylib.CodeBadRequest, err.Error()).FailJSON()
@@ -143,7 +143,7 @@ func (h *Permission) UpdatePermission(c *gin.Context) {
 // @Response     default  {object}  swaglib.Envelope{data=reply.ErrorPayload}
 // @Router       /permissions/{id} [delete]
 func (h *Permission) DeletePermission(c *gin.Context) {
-	rp := replylib.Client.New(adapter.AdaptGin(c))
+	rp := replylib.Client.Use(adapter.AdaptGin(c))
 	id := c.Param("id")
 
 	errPayload := h.permService.ApplyContext(c).DeletePermission(id)
@@ -167,7 +167,7 @@ func (h *Permission) DeletePermission(c *gin.Context) {
 // @Response     default  {object}  swaglib.Envelope{data=reply.ErrorPayload}
 // @Router       /permissions/grant [put]
 func (h *Permission) GrantPermission(c *gin.Context) {
-	rp := replylib.Client.New(adapter.AdaptGin(c))
+	rp := replylib.Client.Use(adapter.AdaptGin(c))
 	var payload payloads.RequestGrantPermission
 	if err := c.ShouldBindJSON(&payload); err != nil {
 		rp.Error(replylib.CodeBadRequest, err.Error()).FailJSON()
@@ -197,7 +197,7 @@ func (h *Permission) GrantPermission(c *gin.Context) {
 // @Response     default  {object}  swaglib.Envelope{data=reply.ErrorPayload}
 // @Router       /permissions/revoke [put]
 func (h *Permission) RevokePermission(c *gin.Context) {
-	rp := replylib.Client.New(adapter.AdaptGin(c))
+	rp := replylib.Client.Use(adapter.AdaptGin(c))
 	var payload payloads.RequestRevokePermission
 	if err := c.ShouldBindJSON(&payload); err != nil {
 		rp.Error(replylib.CodeBadRequest, err.Error()).FailJSON()

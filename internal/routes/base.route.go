@@ -3,13 +3,11 @@ package routes
 import (
 	"fmt"
 	"net/http"
-	"school-information-system/config"
 	"school-information-system/internal/libs/replylib"
 	"school-information-system/internal/repos"
 	"time"
 
 	adapter "github.com/chesta132/goreply/adapter/gin"
-	"github.com/chesta132/goreply/reply"
 	"github.com/gin-gonic/gin"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
@@ -41,21 +39,19 @@ type health struct {
 // @Router       /health 	[get]
 func (rt *Route) RegisterBase(r *gin.Engine) {
 	r.GET("/api/health", func(c *gin.Context) {
-		rp := replylib.Client.New(adapter.AdaptGin(c))
+		rp := replylib.Client.Use(adapter.AdaptGin(c))
 		response := health{Status: "healthy", Timestamp: time.Now().Format(time.RFC3339)}
 
 		dbcheck := c.Query("dbcheck")
 		if dbcheck == "true" {
 			db, err := rt.db.DB()
 			if err != nil {
-				details := config.SplitByEnv("", err.Error())
-				rp.Error(replylib.CodeServerError, "Database connection error", reply.OptErrorPayload{Details: details}).FailJSON()
+				rp.Error(replylib.CodeServerError, "Database connection error").Debug(err).FailJSON()
 				return
 			}
 			err = db.Ping()
 			if err != nil {
-				details := config.SplitByEnv("", err.Error())
-				rp.Error(replylib.CodeServerError, "Database ping failed", reply.OptErrorPayload{Details: details}).FailJSON()
+				rp.Error(replylib.CodeServerError, "Database ping failed").Debug(err).FailJSON()
 				return
 			}
 			response.Database = "healthy"
@@ -65,7 +61,7 @@ func (rt *Route) RegisterBase(r *gin.Engine) {
 	})
 
 	r.NoRoute(func(c *gin.Context) {
-		rp := replylib.Client.New(adapter.AdaptGin(c))
+		rp := replylib.Client.Use(adapter.AdaptGin(c))
 		msg := fmt.Sprintf("can not %s %s", c.Request.Method, c.Request.URL.Path)
 		rp.Error(replylib.CodeNotFound, msg).FailJSON()
 	})

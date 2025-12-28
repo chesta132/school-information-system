@@ -1758,15 +1758,22 @@ const docTemplate = `{
                 },
                 "fields": {
                     "description": "Fields causing the error (if any)",
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/reply.FieldsError"
+                        }
+                    ]
                 },
                 "message": {
                     "description": "Human-readable message",
                     "type": "string"
                 }
+            }
+        },
+        "reply.FieldsError": {
+            "type": "object",
+            "additionalProperties": {
+                "type": "string"
             }
         },
         "routes.health": {
@@ -1810,8 +1817,18 @@ const docTemplate = `{
         "swaglib.Meta": {
             "type": "object",
             "properties": {
+                "debug": {
+                    "description": "please dont process debug fields because it inconsistently",
+                    "type": "string",
+                    "example": "inconsistent value"
+                },
                 "status": {
                     "$ref": "#/definitions/swaglib.status"
+                },
+                "timestamp": {
+                    "description": "in UTC",
+                    "type": "string",
+                    "example": "2006-01-02T15:04:05Z07:00"
                 }
             }
         },
@@ -1825,7 +1842,7 @@ const docTemplate = `{
                             "description": "current offset",
                             "type": "integer"
                         },
-                        "hasNext": {
+                        "has_next": {
                             "description": "true if data more than replied",
                             "type": "boolean"
                         },

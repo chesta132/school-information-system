@@ -126,7 +126,7 @@ func (mw *Auth) Protected(allowUnsettedRole ...bool) gin.HandlerFunc {
 		allowUnsetted = allowUnsettedRole[0]
 	}
 	return func(c *gin.Context) {
-		rp := replylib.Client.New(adapter.AdaptGin(c))
+		rp := replylib.Client.Use(adapter.AdaptGin(c))
 		if mw.ensureAuthenticated(c, rp, allowUnsetted) {
 			c.Next()
 		}
@@ -141,7 +141,7 @@ func (mw *Auth) RoleProtected(roles ...models.UserRole) gin.HandlerFunc {
 	}
 
 	return func(c *gin.Context) {
-		rp := replylib.Client.New(adapter.AdaptGin(c))
+		rp := replylib.Client.Use(adapter.AdaptGin(c))
 
 		// make sure user is authenticated
 		allowUnsetted := slices.Contains(strRoles, string(models.RoleUnsetted))
@@ -173,7 +173,7 @@ func (mw *Auth) RoleProtected(roles ...models.UserRole) gin.HandlerFunc {
 // PermissionProtected protects with permission validation
 func (mw *Auth) PermissionProtected(resource models.PermissionResource, actions []models.PermissionAction) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		rp := replylib.Client.New(adapter.AdaptGin(c))
+		rp := replylib.Client.Use(adapter.AdaptGin(c))
 		ctx := c.Request.Context()
 
 		// make sure user is authenticated
@@ -196,7 +196,7 @@ func (mw *Auth) PermissionProtected(resource models.PermissionResource, actions 
 		// get and set user with permissions
 		user, err := mw.userRepo.GetFirstWithPreload(ctx, []string{"AdminProfile.Permissions"}, "id = ? AND role = ?", userID, models.RoleAdmin)
 		if err != nil {
-			errPayload := errorlib.MakeNotFound(err, "your user profile not found", []string{})
+			errPayload := errorlib.MakeNotFound(err, "your user profile not found", nil)
 			rp.Error(errPayload.Code, errPayload.Message).FailJSON()
 			c.Abort()
 			return

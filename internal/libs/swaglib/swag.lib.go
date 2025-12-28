@@ -1,4 +1,7 @@
+// for docs only lib
 package swaglib
+
+import "time"
 
 type status string
 
@@ -9,14 +12,14 @@ const (
 
 type Pagination struct {
 	Pagination struct {
-		Current int  `json:"current"` // current offset
-		HasNext bool `json:"hasNext"` // true if data more than replied
-		Next    int  `json:"next"`    // if hasNext is false, next is 0
+		Current int  `json:"current"`  // current offset
+		HasNext bool `json:"has_next"` // true if data more than replied
+		Next    int  `json:"next"`     // if hasNext is false, next is 0
 	} `json:"pagination"`
 }
 
 type Token struct {
-	Token map[string]string `json:"token"`
+	Tokens map[string]string `json:"tokens"`
 }
 
 type Info struct {
@@ -24,7 +27,9 @@ type Info struct {
 }
 
 type Meta struct {
-	Status status `json:"status"`
+	Status    status    `json:"status"`
+	Timestamp time.Time `json:"timestamp" example:"2006-01-02T15:04:05Z07:00"` // in UTC
+	Debug     string    `json:"debug" example:"inconsistent value"`            // please dont process debug fields because it inconsistently
 }
 
 type Envelope struct {

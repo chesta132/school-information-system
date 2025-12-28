@@ -26,7 +26,7 @@ func NewAuth(authService *services.Auth) *Auth {
 // @Response     default  {object}  swaglib.Envelope{data=reply.ErrorPayload}
 // @Router       /auth/sign-up [post]
 func (h *Auth) SignUp(c *gin.Context) {
-	rp := replylib.Client.New(adapter.AdaptGin(c))
+	rp := replylib.Client.Use(adapter.AdaptGin(c))
 	var payload payloads.RequestSignUp
 	if err := c.ShouldBindJSON(&payload); err != nil {
 		rp.Error(replylib.CodeBadRequest, err.Error()).FailJSON()
@@ -51,7 +51,7 @@ func (h *Auth) SignUp(c *gin.Context) {
 // @Response     default  {object}  swaglib.Envelope{data=reply.ErrorPayload}
 // @Router       /auth/sign-in [post]
 func (h *Auth) SignIn(c *gin.Context) {
-	rp := replylib.Client.New(adapter.AdaptGin(c))
+	rp := replylib.Client.Use(adapter.AdaptGin(c))
 	var payload payloads.RequestSignIn
 	if err := c.ShouldBindJSON(&payload); err != nil {
 		rp.Error(replylib.CodeBadRequest, err.Error()).FailJSON()
@@ -74,7 +74,7 @@ func (h *Auth) SignIn(c *gin.Context) {
 // @Success      200  		{object}  swaglib.Envelope{data=nil}
 // @Router       /auth/sign-out [post]
 func (h *Auth) SignOut(c *gin.Context) {
-	rp := replylib.Client.New(adapter.AdaptGin(c))
+	rp := replylib.Client.Use(adapter.AdaptGin(c))
 	cookies := h.authService.ApplyContext(c).SignOut()
 	rp.SetCookies(cookies...).Success(nil).OkJSON()
 }

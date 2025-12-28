@@ -9,39 +9,39 @@ var (
 
 	ErrInvalidPhone = reply.ErrorPayload{
 		Code:    CodeBadRequest,
-		Message: "invalid phone number",
-		Fields:  []string{"phone"},
+		Message: "invalid payload",
+		Fields:  reply.FieldsError{"phone": "invalid phone number"},
 	}
 	ErrPhoneRegistered = reply.ErrorPayload{
 		Code:    CodeConflict,
-		Message: "phone number already registered",
-		Fields:  []string{"phone"},
+		Message: "invalid payload",
+		Fields:  reply.FieldsError{"phone": "phone number already registered"},
 	}
 
 	// email errors
 
 	ErrEmailRegistered = reply.ErrorPayload{
 		Code:    CodeConflict,
-		Message: "email already registered",
-		Fields:  []string{"email"},
+		Message: "invalid payload",
+		Fields:  reply.FieldsError{"email": "email already registered"},
 	}
 	ErrEmailNotRegistered = reply.ErrorPayload{
 		Code:    CodeNotFound,
-		Message: "email not registered yet",
-		Fields:  []string{"email"},
+		Message: "invalid payload",
+		Fields:  reply.FieldsError{"email": "email not registered yet"},
 	}
 
 	// password errors
 
 	ErrIncorrectPassword = reply.ErrorPayload{
 		Code:    CodeUnauthorized,
-		Message: "password is incorrect",
-		Fields:  []string{"password"},
+		Message: "invalid payload",
+		Fields:  reply.FieldsError{"password": "password is incorrect"},
 	}
 	ErrIncorrectKey = reply.ErrorPayload{
 		Code:    CodeUnauthorized,
-		Message: "invalid key",
-		Fields:  []string{"key"},
+		Message: "invalid payload",
+		Fields:  reply.FieldsError{"key": "invalid key"},
 	}
 
 	// presence/absence error
@@ -52,8 +52,8 @@ var (
 	}
 	ErrPermissionNameExist = reply.ErrorPayload{
 		Code:    CodeConflict,
-		Message: "another permission with this name already registered",
-		Fields:  []string{"name"},
+		Message: "invalid payload",
+		Fields:  reply.FieldsError{"name": "another permission with this name already registered"},
 	}
 	ErrPermissionImmutable = reply.ErrorPayload{
 		Code:    CodeUnprocessableEntity,
@@ -61,6 +61,6 @@ var (
 	}
 )
 
-func ErrorPayloadToArgs(errPayload *reply.ErrorPayload) (code, message string, opt reply.OptErrorPayload) {
-	return errPayload.Code, errPayload.Message, reply.OptErrorPayload{Details: errPayload.Details, Fields: errPayload.Fields}
+func ErrorPayloadToArgs(errPayload *reply.ErrorPayload) (string, string, reply.ErrorOption, reply.ErrorOption) {
+	return errPayload.Code, errPayload.Message, reply.WithDetails(errPayload.Details), reply.WithFields(errPayload.Fields)
 }
