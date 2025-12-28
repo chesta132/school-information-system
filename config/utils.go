@@ -1,7 +1,5 @@
 package config
 
-import "school-information-system/internal/libs/errorlib"
-
 // ---- DO NOT CHANGE ----
 
 func IsEnvProd() bool {
@@ -20,9 +18,9 @@ func SplitByEnv[T any](prodValue, devValue T) T {
 	}
 }
 
-func EnvCheck() error {
+func init() {
 	if IsEnvDev() || IsEnvProd() {
-		return nil
+		return
 	}
-	return errorlib.ErrInvalidEnv
+	panic("[ENVIRONMENT] invalid environment, must be 'development' or 'production'")
 }

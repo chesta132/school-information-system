@@ -1,10 +1,10 @@
 package main
 
 import (
-	"school-information-system/config"
 	"school-information-system/database"
 	"school-information-system/database/seeds"
 	_ "school-information-system/docs"
+	_ "school-information-system/config"
 	"school-information-system/internal/cron"
 	"school-information-system/internal/libs/validatorlib"
 	"school-information-system/internal/repos"
@@ -19,11 +19,6 @@ import (
 // @host		localhost:8080
 // @BasePath	/api
 func main() {
-	// check env
-	if err := config.EnvCheck(); err != nil {
-		panic(err)
-	}
-
 	// setup database
 	db := database.Connect()
 	seeds.Migrate(db)
