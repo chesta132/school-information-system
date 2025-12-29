@@ -10,6 +10,7 @@ import (
 const (
 	PermRoleName       = "role full manage"
 	PermPermissionName = "permission full manage"
+	PermSubjectName    = "subject full manage"
 )
 
 var PermissionSeeds = []models.Permission{
@@ -23,6 +24,12 @@ var PermissionSeeds = []models.Permission{
 		Name:        PermPermissionName,
 		Resource:    models.ResourcePermission,
 		Description: "Full access to manage permissions of users with admin role",
+		Actions:     []models.PermissionAction{models.ActionCreate, models.ActionRead, models.ActionUpdate, models.ActionDelete},
+	},
+	{
+		Name:        PermSubjectName,
+		Resource:    models.ResourceSubject,
+		Description: "Full access to manage subjects",
 		Actions:     []models.PermissionAction{models.ActionCreate, models.ActionRead, models.ActionUpdate, models.ActionDelete},
 	},
 }
