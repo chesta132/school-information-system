@@ -20,4 +20,15 @@ func (rt *Route) RegisterSubject(group *gin.RouterGroup) {
 	group.POST("/", mw.PermissionProtected(
 		models.ResourceSubject, []models.PermissionAction{models.ActionCreate},
 	), handler.CreateSubject)
+
+	group.GET("/:id", mw.PermissionProtected(
+		models.ResourceSubject,
+		[]models.PermissionAction{models.ActionRead},
+		middlewares.WithSkipRole(models.RoleTeacher),
+	), handler.GetSubject)
+	group.GET("/", mw.PermissionProtected(
+		models.ResourceSubject,
+		[]models.PermissionAction{models.ActionRead},
+		middlewares.WithSkipRole(models.RoleTeacher),
+	), handler.GetSubjects)
 }
