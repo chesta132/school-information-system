@@ -31,4 +31,9 @@ func (rt *Route) RegisterSubject(group *gin.RouterGroup) {
 		[]models.PermissionAction{models.ActionRead},
 		middlewares.WithSkipRole(models.RoleTeacher),
 	), handler.GetSubjects)
+
+	group.PUT("/:id", mw.PermissionProtected(
+		models.ResourceSubject,
+		[]models.PermissionAction{models.ActionUpdate},
+	), handler.UpdateSubject)
 }

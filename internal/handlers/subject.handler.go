@@ -95,3 +95,33 @@ func (h *Subject) GetSubjects(c *gin.Context) {
 
 	rp.Success(subjects).PaginateCursor(config.LIMIT_PAGINATED_DATA, payload.Offset).OkJSON()
 }
+
+// @Summary      Update existing subject
+// @Description  Admin with permission update subject resource only
+// @Tags         subject
+// @Accept       json
+// @Produce      json
+// @Param				 Cookie   header 		string 	false	"access_token"
+// @Param				 Cookie2  header 		string 	true	"refresh_token"
+// @Param 			 id				path 			string  true  "subject id"
+// @Param				 payload  body			payloads.RequestUpdateSubject	true	"data to update subject"
+// @Success      200  		{object}  swaglib.Envelope{data=models.Subject}
+// @Response     default  {object}  swaglib.Envelope{data=reply.ErrorPayload}
+// @Router       /subjects/{id} [put]
+func (h *Subject) UpdateSubject(c *gin.Context) {
+	rp := replylib.Client.Use(adapter.AdaptGin(c))
+	var payload payloads.RequestUpdateSubject
+	if err := c.ShouldBindJSON(&payload); err != nil {
+		rp.Error(replylib.CodeBadRequest, err.Error()).FailJSON()
+		return
+	}
+	payload.ID = c.Param("id")
+
+	subject, errPayload := h.subjectService.ApplyContext(c).UpdateSubject(payload)
+	if errPayload != nil {
+		rp.Error(replylib.ErrorPayloadToArgs(errPayload)).FailJSON()
+		return
+	}
+
+	rp.Success(subject).OkJSON()
+}

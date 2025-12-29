@@ -88,3 +88,19 @@ func (s *ContextedSubject) GetSubjects(payload payloads.RequestGetSubjects) ([]m
 
 	return subject, nil
 }
+
+func (s *ContextedSubject) UpdateSubject(payload payloads.RequestUpdateSubject) (*models.Subject, *reply.ErrorPayload) {
+	// validate payload
+	if errPayload := validatorlib.ValidateStructToReply(payload); errPayload != nil {
+		return nil, errPayload
+	}
+
+	// update and get subject
+	subject := models.Subject{Name: payload.Name}
+	subject, err := s.subjetRepo.UpdateByIDAndGet(s.ctx, payload.ID, subject)
+	if err != nil {
+		return nil, errorlib.MakeServerError(err)
+	}
+
+	return &subject, nil
+}
