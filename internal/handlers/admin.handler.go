@@ -42,7 +42,7 @@ func (h *Admin) InitiateAdmin(c *gin.Context) {
 		return
 	}
 
-	rp.Success(user).Info(fmt.Sprintf("Admin created: %s (%s)", user.FullName, payload.StaffRole)).OkJSON()
+	rp.Success(user).Info(fmt.Sprintf("Admin created: %s (%s) please re-sign in to apply changes", user.FullName, payload.StaffRole)).OkJSON()
 }
 
 // @Summary      Set another user's role

@@ -63,7 +63,7 @@ func (s *ContextedAdmin) InitiateAdmin(payload payloads.RequestInitiateAdmin) (*
 	}
 
 	// transaction to rollback if error
-	admin, err := s.initiateAdminInTx(payload, user)
+	admin, err := s.initiateAdminInTx(payload, &user)
 	if err != nil {
 		return nil, &reply.ErrorPayload{
 			Code:    replylib.CodeServerError,
@@ -75,7 +75,7 @@ func (s *ContextedAdmin) InitiateAdmin(payload payloads.RequestInitiateAdmin) (*
 	return &user, nil
 }
 
-func (s *ContextedAdmin) initiateAdminInTx(payload payloads.RequestInitiateAdmin, user models.User) (admin *models.Admin, err error) {
+func (s *ContextedAdmin) initiateAdminInTx(payload payloads.RequestInitiateAdmin, user *models.User) (admin *models.Admin, err error) {
 	err = s.userRepo.DB().Transaction(func(tx *gorm.DB) error {
 		userRepo := s.userRepo.WithTx(tx)
 		adminRepo := s.adminRepo.WithTx(tx)
@@ -85,6 +85,7 @@ func (s *ContextedAdmin) initiateAdminInTx(payload payloads.RequestInitiateAdmin
 		if err != nil {
 			return err
 		}
+		user.Role = models.RoleAdmin
 
 		// create admin with permission seeds
 		admin = &models.Admin{
