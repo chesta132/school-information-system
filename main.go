@@ -1,10 +1,10 @@
 package main
 
 import (
+	_ "school-information-system/config"
 	"school-information-system/database"
 	"school-information-system/database/seeds"
 	_ "school-information-system/docs"
-	_ "school-information-system/config"
 	"school-information-system/internal/cron"
 	"school-information-system/internal/libs/validatorlib"
 	"school-information-system/internal/repos"
@@ -36,6 +36,7 @@ func main() {
 		router.RegisterBase(r)
 		router.RegisterAuth(api.Group("/auth"))
 		router.RegisterAdmin(api.Group("/admins"))
+		router.RegisterSubject(api.Group("/subjects"))
 	}
 
 	// start cron jobs
