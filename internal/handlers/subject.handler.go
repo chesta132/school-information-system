@@ -125,3 +125,31 @@ func (h *Subject) UpdateSubject(c *gin.Context) {
 
 	rp.Success(subject).OkJSON()
 }
+
+// @Summary      Delete existing subject
+// @Description  Admin with permission delete subject resource only
+// @Tags         subject
+// @Accept       json
+// @Produce      json
+// @Param				 Cookie   header 		string 	false	"access_token"
+// @Param				 Cookie2  header 		string 	true	"refresh_token"
+// @Param 			 id				path 			string  true  "subject id"
+// @Success      200  		{object}  swaglib.Envelope{data=models.Id}
+// @Response     default  {object}  swaglib.Envelope{data=reply.ErrorPayload}
+// @Router       /subjects/{id} [delete]
+func (h *Subject) DeleteSubject(c *gin.Context) {
+	rp := replylib.Client.Use(adapter.AdaptGin(c))
+	var payload payloads.RequestDeleteSubject
+	if err := c.ShouldBindUri(&payload); err != nil {
+		rp.Error(replylib.CodeBadRequest, err.Error()).FailJSON()
+		return
+	}
+
+	errPayload := h.subjectService.ApplyContext(c).DeleteSubject(payload)
+	if errPayload != nil {
+		rp.Error(replylib.ErrorPayloadToArgs(errPayload)).FailJSON()
+		return
+	}
+
+	rp.Success(map[string]string{"id": payload.ID}).OkJSON()
+}

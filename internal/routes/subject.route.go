@@ -36,4 +36,9 @@ func (rt *Route) RegisterSubject(group *gin.RouterGroup) {
 		models.ResourceSubject,
 		[]models.PermissionAction{models.ActionUpdate},
 	), handler.UpdateSubject)
+
+	group.DELETE("/:id", mw.PermissionProtected(
+		models.ResourceSubject,
+		[]models.PermissionAction{models.ActionDelete},
+	), handler.DeleteSubject)
 }

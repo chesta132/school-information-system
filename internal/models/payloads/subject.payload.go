@@ -17,3 +17,7 @@ type RequestUpdateSubject struct {
 	ID   string `uri:"id" json:"id" validate:"required,uuid4"`
 	Name string `json:"name" validate:"required"`
 }
+
+type RequestDeleteSubject struct {
+	ID string `uri:"id" json:"id" validate:"required,uuid4"`
+}

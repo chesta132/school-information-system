@@ -2,9 +2,11 @@ package services
 
 import (
 	"context"
+	"errors"
 	"log"
 	"school-information-system/config"
 	"school-information-system/internal/libs/errorlib"
+	"school-information-system/internal/libs/replylib"
 	"school-information-system/internal/libs/validatorlib"
 	"school-information-system/internal/models"
 	"school-information-system/internal/models/payloads"
@@ -103,4 +105,45 @@ func (s *ContextedSubject) UpdateSubject(payload payloads.RequestUpdateSubject) 
 	}
 
 	return &subject, nil
+}
+
+func (s *ContextedSubject) DeleteSubject(payload payloads.RequestDeleteSubject) (errPayload *reply.ErrorPayload) {
+	// validate payload
+	if errPayload := validatorlib.ValidateStructToReply(payload); errPayload != nil {
+		return errPayload
+	}
+
+	s.subjetRepo.DB().Transaction(func(tx *gorm.DB) error {
+		subjectRepo := s.subjetRepo.WithTx(tx)
+
+		// validate if there is another teacher related to this subject
+		var related bool
+		err := tx.Raw("SELECT EXISTS (SELECT 1 FROM teacher_subjects WHERE subject_id = ? LIMIT 1)", payload.ID).Scan(&related).Error
+		if err != nil {
+			errPayload = errorlib.MakeServerError(err)
+			return err
+		}
+		if related {
+			errPayload = &reply.ErrorPayload{
+				Code:    replylib.CodeConflict,
+				Message: "subject still registered by other teacher(s)",
+			}
+			return errors.New("can't delete related subject")
+		}
+
+		// delete subject
+		ok, err := subjectRepo.DeleteByID(s.ctx, payload.ID)
+		if err != nil {
+			errPayload = errorlib.MakeServerError(err)
+			return err
+		}
+		if !ok {
+			errPayload = errorlib.MakeNotFound(gorm.ErrRecordNotFound, "subject not found", nil)
+			return gorm.ErrRecordNotFound
+		}
+
+		return nil
+	})
+
+	return
 }
