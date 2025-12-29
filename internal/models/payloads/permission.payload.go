@@ -3,13 +3,13 @@ package payloads
 import "school-information-system/internal/models"
 
 type RequestGrantPermission struct {
-	TargetID     string `json:"target_id" validate:"required" example:"479b5b5f-81b1-4669-91a5-b5bf69e597c6"`
-	PermissionID string `json:"permission_id" validate:"required" example:"479b5b5f-81b1-4669-91a5-b5bf69e597c6"`
+	TargetID     string `json:"target_id" validate:"required,uuid4" example:"479b5b5f-81b1-4669-91a5-b5bf69e597c6"`
+	PermissionID string `json:"permission_id" validate:"required,uuid4" example:"479b5b5f-81b1-4669-91a5-b5bf69e597c6"`
 }
 
 type RequestRevokePermission struct {
-	TargetID     string `json:"target_id" validate:"required" example:"479b5b5f-81b1-4669-91a5-b5bf69e597c6"`
-	PermissionID string `json:"permission_id" validate:"required" example:"479b5b5f-81b1-4669-91a5-b5bf69e597c6"`
+	TargetID     string `json:"target_id" validate:"required,uuid4" example:"479b5b5f-81b1-4669-91a5-b5bf69e597c6"`
+	PermissionID string `json:"permission_id" validate:"required,uuid4" example:"479b5b5f-81b1-4669-91a5-b5bf69e597c6"`
 }
 
 type RequestCreatePermission struct {
@@ -27,7 +27,7 @@ type RequestGetPermissions struct {
 }
 
 type RequestUpdatePermission struct {
-	ID          string `validate:"required" example:"479b5b5f-81b1-4669-91a5-b5bf69e597c6"`
+	ID          string `validate:"required,uuid4" example:"479b5b5f-81b1-4669-91a5-b5bf69e597c6"`
 	Name        string `json:"name" validate:"required_without=Description,omitempty,min=10" example:"updated name"`
 	Description string `json:"description" validate:"required_without=Name,omitempty,min=10" example:"updated desc"`
 }

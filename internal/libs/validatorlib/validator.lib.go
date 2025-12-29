@@ -121,6 +121,11 @@ func TranslateError(err error, prefixMap map[string]string) reply.FieldsError {
 			case "required_without":
 				fields[fieldName] = fmt.Sprintf("%s required if %s empty", fieldName, err.Param())
 				insertedErr[fieldName] = struct{}{}
+			case "uuid4":
+				fields[fieldName] = fmt.Sprintf("%s must be an uuid4", fieldName)
+				insertedErr[fieldName] = struct{}{}
+			default:
+				fields[fieldName] = err.Error()
 			}
 		}
 	}

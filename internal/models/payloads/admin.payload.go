@@ -7,14 +7,14 @@ import (
 
 type RequestInitiateAdmin struct {
 	Key        string    `json:"key" validate:"required" example:"super secret"`
-	TargetID   string    `json:"target_id" validate:"required" example:"479b5b5f-81b1-4669-91a5-b5bf69e597c6"`
+	TargetID   string    `json:"target_id" validate:"required,uuid4" example:"479b5b5f-81b1-4669-91a5-b5bf69e597c6"`
 	StaffRole  string    `json:"staff_role" validate:"required" example:"developer"`
 	EmployeeID string    `json:"employee_id" validate:"required" example:"DEV002"`
 	JoinedAt   time.Time `json:"joined_at" validate:"required" example:"2006-01-02T15:04:05Z07:00"`
 }
 
 type RequestSetRole struct {
-	TargetID   string          `json:"target_id" validate:"required" example:"479b5b5f-81b1-4669-91a5-b5bf69e597c6"`
+	TargetID   string          `json:"target_id" validate:"required,uuid4" example:"479b5b5f-81b1-4669-91a5-b5bf69e597c6"`
 	TargetRole models.UserRole `json:"target_role" validate:"required,oneof=student teacher admin"`
 
 	// empty ig target_role not student
@@ -26,13 +26,13 @@ type RequestSetRole struct {
 }
 
 type RequestSetRoleStudent struct {
-	ClassID   string   `json:"class_id" validate:"required" example:"479b5b5f-81b1-4669-91a5-b5bf69e597c6"`
-	ParentIDs []string `json:"parent_ids" validate:"required,min=2,max=2" example:"479b5b5f-81b1-4669-91a5-b5bf69e597c6,479b5b5f-81b1-4669-91a5-b5bf69e597c7"`
+	ClassID   string   `json:"class_id" validate:"required,uuid4" example:"479b5b5f-81b1-4669-91a5-b5bf69e597c6"`
+	ParentIDs []string `json:"parent_ids" validate:"required,min=2,max=2,dive,uuid4" example:"479b5b5f-81b1-4669-91a5-b5bf69e597c6,479b5b5f-81b1-4669-91a5-b5bf69e597c7"`
 	NISN      string   `validate:"required" example:"0091913711"`
 }
 
 type RequestSetRoleTeacher struct {
-	SubjectIDs []string  `json:"subject_ids" validate:"required" example:"479b5b5f-81b1-4669-91a5-b5bf69e597c6,479b5b5f-81b1-4669-91a5-b5bf69e597c7"`
+	SubjectIDs []string  `json:"subject_ids" validate:"required,min=1,max=1,dive,uuid4" example:"479b5b5f-81b1-4669-91a5-b5bf69e597c6,479b5b5f-81b1-4669-91a5-b5bf69e597c7"`
 	NUPTK      string    `validate:"required" example:"1234567890123456"`
 	EmployeeID string    `json:"employee_id" validate:"required" example:"479b5b5f-81b1-4669-91a5-b5bf69e597c6"`
 	JoinedAt   time.Time `json:"joined_at" validate:"required" example:"2006-01-02T15:04:05Z07:00"`
