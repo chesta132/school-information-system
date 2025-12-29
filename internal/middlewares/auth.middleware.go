@@ -170,11 +170,28 @@ func (mw *Auth) RoleProtected(roles ...models.UserRole) gin.HandlerFunc {
 	}
 }
 
+type PermissionProtectedOpt struct {
+	skipOnRole []models.UserRole
+}
+
+type PermissionProtectedOptFunc func(*PermissionProtectedOpt)
+
+func WithSkipRole(roles ...models.UserRole) PermissionProtectedOptFunc {
+	return func(ppo *PermissionProtectedOpt) {
+		ppo.skipOnRole = roles
+	}
+}
+
 // PermissionProtected protects with permission validation
-func (mw *Auth) PermissionProtected(resource models.PermissionResource, actions []models.PermissionAction) gin.HandlerFunc {
+func (mw *Auth) PermissionProtected(resource models.PermissionResource, actions []models.PermissionAction, opts ...PermissionProtectedOptFunc) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		rp := replylib.Client.Use(adapter.AdaptGin(c))
 		ctx := c.Request.Context()
+
+		option := new(PermissionProtectedOpt)
+		for _, opt := range opts {
+			opt(option)
+		}
 
 		// make sure user is authenticated
 		if !mw.ensureAuthenticated(c, rp, false) {
@@ -185,6 +202,11 @@ func (mw *Auth) PermissionProtected(resource models.PermissionResource, actions 
 		userID, _ := userIDInterface.(string)
 		roleInterface, _ := c.Get("role")
 		role, _ := roleInterface.(string)
+
+		if len(option.skipOnRole) > 0 && slices.Contains(option.skipOnRole, models.UserRole(role)) {
+			c.Next()
+			return
+		}
 
 		// validate role is admin
 		if role != string(models.RoleAdmin) {
