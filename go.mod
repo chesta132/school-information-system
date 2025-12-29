@@ -3,7 +3,7 @@ module school-information-system
 go 1.25.0
 
 require (
-	github.com/chesta132/goreply v0.0.11
+	github.com/chesta132/goreply v0.0.12
 	github.com/chesta132/goreply/adapter/gin v0.0.0-20251228071257-dc89dd005470
 	github.com/gin-gonic/gin v1.11.0
 	github.com/go-playground/validator/v10 v10.30.1
