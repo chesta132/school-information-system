@@ -15,7 +15,7 @@ type Pagination struct {
 type Meta struct {
 	Status      string            `json:"status"`
 	Timestamp   time.Time         `json:"timestamp"`
-	Pagination  Pagination        `json:"pagination,omitzero"`
+	Pagination  *Pagination       `json:"pagination,omitempty"`
 	Information string            `json:"information,omitempty"`
 	Tokens      map[string]string `json:"tokens,omitempty"`
 	Debug       any               `json:"debug,omitempty"`
@@ -39,7 +39,7 @@ func transformer(rp *reply.Reply) any {
 	}
 
 	if meta.Pagination != nil {
-		transMeta.Pagination = Pagination{
+		transMeta.Pagination = &Pagination{
 			Current: meta.Pagination.Current,
 			HasNext: meta.Pagination.HasNext,
 			Next:    meta.Pagination.Next,
