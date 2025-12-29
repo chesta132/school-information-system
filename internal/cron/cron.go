@@ -9,6 +9,7 @@ import (
 
 	"github.com/robfig/cron/v3"
 	"gorm.io/gorm"
+	_ "time/tzdata"
 )
 
 func New(db *gorm.DB) *cron.Cron {
