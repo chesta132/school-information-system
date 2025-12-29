@@ -143,7 +143,7 @@ func (s *ContextedPermission) GetPermissions(payload payloads.RequestGetPermissi
 		q = q.Where("LOWER(name) LIKE LOWER(?)", "%"+payload.Query+"%")
 	}
 	// offset query
-	if payload.Offset != 0 {
+	if payload.Offset > 0 {
 		q = q.Offset(payload.Offset)
 	}
 
