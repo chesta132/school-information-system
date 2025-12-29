@@ -100,8 +100,13 @@ func (s *ContextedPermission) CreatePermission(payload payloads.RequestCreatePer
 	return
 }
 
-func (s *ContextedPermission) GetPermission(permissionID string) (permission *models.Permission, errPayload *reply.ErrorPayload) {
-	perm, err := s.permissionRepo.GetByID(s.ctx, permissionID)
+func (s *ContextedPermission) GetPermission(payload payloads.RequestGetPermission) (permission *models.Permission, errPayload *reply.ErrorPayload) {
+	// validate payload
+	if errPayload = validatorlib.ValidateStructToReply(payload); errPayload != nil {
+		return
+	}
+
+	perm, err := s.permissionRepo.GetByID(s.ctx, payload.ID)
 	if err != nil {
 		errPayload = errorlib.MakeNotFound(err, "permission not found", nil)
 	}
@@ -207,19 +212,24 @@ func (s *ContextedPermission) UpdatePermission(payload payloads.RequestUpdatePer
 	return
 }
 
-func (s *ContextedPermission) DeletePermission(permissionID string) (errPayload *reply.ErrorPayload) {
+func (s *ContextedPermission) DeletePermission(payload payloads.RequestDeletePermission) (errPayload *reply.ErrorPayload) {
+	// validate payload
+	if errPayload = validatorlib.ValidateStructToReply(payload); errPayload != nil {
+		return
+	}
+
 	s.userRepo.DB().Transaction(func(tx *gorm.DB) error {
 		permissionRepo := s.permissionRepo.WithTx(tx)
 
 		// check if permission is permission seeds
-		if seeds.IsPermissionSeed(&models.Permission{Id: models.Id{ID: permissionID}}) {
+		if seeds.IsPermissionSeed(&models.Permission{Id: models.Id{ID: payload.ID}}) {
 			errPayload = &replylib.ErrPermissionImmutable
 			return errors.New(errPayload.Message)
 		}
 
 		// check is permission have relation with another admin
 		var m2mExist bool
-		err := tx.Raw("SELECT EXISTS (SELECT 1 FROM admin_permissions WHERE permission_id = ? LIMIT 1)", permissionID).Scan(&m2mExist).Error // line 113
+		err := tx.Raw("SELECT EXISTS (SELECT 1 FROM admin_permissions WHERE permission_id = ? LIMIT 1)", payload.ID).Scan(&m2mExist).Error // line 113
 		if err != nil {
 			errPayload = errorlib.MakeServerError(err)
 			return err
@@ -230,7 +240,7 @@ func (s *ContextedPermission) DeletePermission(permissionID string) (errPayload 
 		}
 
 		// delete permission
-		exists, err := permissionRepo.DeleteByID(s.ctx, permissionID)
+		exists, err := permissionRepo.DeleteByID(s.ctx, payload.ID)
 		if err != nil {
 			errPayload = errorlib.MakeServerError(err)
 			return err

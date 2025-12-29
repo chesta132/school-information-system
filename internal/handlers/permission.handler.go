@@ -65,9 +65,10 @@ func (h *Permission) CreatePermission(c *gin.Context) {
 // @Router       /permissions/{id} [get]
 func (h *Permission) GetPermission(c *gin.Context) {
 	rp := replylib.Client.Use(adapter.AdaptGin(c))
-	id := c.Param("id")
+	var payload payloads.RequestGetPermission
+	c.ShouldBindUri(&payload)
 
-	perm, errPayload := h.permService.ApplyContext(c).GetPermission(id)
+	perm, errPayload := h.permService.ApplyContext(c).GetPermission(payload)
 	if errPayload != nil {
 		rp.Error(replylib.ErrorPayloadToArgs(errPayload)).FailJSON()
 		return
@@ -84,7 +85,7 @@ func (h *Permission) GetPermission(c *gin.Context) {
 // @Param				 Cookie   header 		string 	false	"access_token"
 // @Param				 Cookie2  header 		string 	true	"refresh_token"
 // @Param				 payload  query			payloads.RequestGetPermissions	true	"config to accept permissions"
-// @Success      200  		{array}  swaglib.Envelope{data=models.Permission,meta=swaglib.Pagination}
+// @Success      200  		{array}  	swaglib.Envelope{data=[]models.Permission,meta=swaglib.Pagination}
 // @Response     default  {object}  swaglib.Envelope{data=reply.ErrorPayload}
 // @Router       /permissions [get]
 func (h *Permission) GetPermissions(c *gin.Context) {
@@ -132,7 +133,7 @@ func (h *Permission) UpdatePermission(c *gin.Context) {
 }
 
 // @Summary      Delete existing permission
-// @Description  Admin with permission delete permission resource only. Can not deleet granted permission
+// @Description  Admin with permission delete permission resource only. Can not delete granted permission
 // @Tags         permission
 // @Accept       json
 // @Produce      json
@@ -144,15 +145,19 @@ func (h *Permission) UpdatePermission(c *gin.Context) {
 // @Router       /permissions/{id} [delete]
 func (h *Permission) DeletePermission(c *gin.Context) {
 	rp := replylib.Client.Use(adapter.AdaptGin(c))
-	id := c.Param("id")
+	var payload payloads.RequestDeletePermission
+	if err := c.ShouldBindUri(&payload); err != nil {
+		rp.Error(replylib.CodeBadRequest, err.Error()).FailJSON()
+		return
+	}
 
-	errPayload := h.permService.ApplyContext(c).DeletePermission(id)
+	errPayload := h.permService.ApplyContext(c).DeletePermission(payload)
 	if errPayload != nil {
 		rp.Error(replylib.ErrorPayloadToArgs(errPayload)).FailJSON()
 		return
 	}
 
-	rp.Success(map[string]string{"id": id}).OkJSON()
+	rp.Success(map[string]string{"id": payload.ID}).OkJSON()
 }
 
 // @Summary      Grant existing permission to another admin
