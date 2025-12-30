@@ -8,5 +8,12 @@ type RequestCreateClass struct {
 }
 
 type RequestGetClass struct {
-	ID     string `uri:"id" validate:"required,uuid4"`
+	ID string `uri:"id" validate:"required,uuid4"`
+}
+
+type RequestGetClasses struct {
+	Offset      int    `form:"offset" example:"10"`
+	Grade       int    `form:"grade" example:"10"`
+	Major       string `form:"major" example:"TJKT"`
+	ClassNumber int    `form:"class_number" example:"3"`
 }

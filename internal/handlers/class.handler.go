@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"school-information-system/config"
 	"school-information-system/internal/libs/replylib"
 	"school-information-system/internal/models/payloads"
 	"school-information-system/internal/services"
@@ -61,11 +62,35 @@ func (h *Class) GetClass(c *gin.Context) {
 	var payload payloads.RequestGetClass
 	c.ShouldBindUri(&payload)
 
-	perm, errPayload := h.classService.ApplyContext(c).GetClass(payload)
+	class, errPayload := h.classService.ApplyContext(c).GetClass(payload)
 	if errPayload != nil {
 		rp.Error(replylib.ErrorPayloadToArgs(errPayload)).FailJSON()
 		return
 	}
 
-	rp.Success(perm).OkJSON()
+	rp.Success(class).OkJSON()
+}
+
+// @Summary      Get existing classes
+// @Description  Admin with permission read class resource or teacher only
+// @Tags         class
+// @Accept       json
+// @Produce      json
+// @Param				 Cookie   header 		string 	false	"access_token"
+// @Param				 Cookie2  header 		string 	true	"refresh_token"
+// @Success      200  		{object}  swaglib.Envelope{data=[]models.Class{form_teacher_id=string}}
+// @Response     default  {object}  swaglib.Envelope{data=reply.ErrorPayload}
+// @Router       /classes [get]
+func (h *Class) GetClasses(c *gin.Context) {
+	rp := replylib.Client.Use(adapter.AdaptGin(c))
+	var payload payloads.RequestGetClasses
+	c.ShouldBindQuery(&payload)
+
+	classes, errPayload := h.classService.ApplyContext(c).GetClasses(payload)
+	if errPayload != nil {
+		rp.Error(replylib.ErrorPayloadToArgs(errPayload)).FailJSON()
+		return
+	}
+
+	rp.Success(classes).PaginateCursor(config.LIMIT_PAGINATED_DATA, payload.Offset).OkJSON()
 }

@@ -3,6 +3,7 @@ package services
 import (
 	"context"
 	"errors"
+	"school-information-system/config"
 	"school-information-system/internal/libs/errorlib"
 	"school-information-system/internal/libs/replylib"
 	"school-information-system/internal/libs/validatorlib"
@@ -114,4 +115,31 @@ func (s *ContextedClass) GetClass(payload payloads.RequestGetClass) (*models.Cla
 
 	class.GetName()
 	return &class, nil
+}
+
+func (s *ContextedClass) GetClasses(payload payloads.RequestGetClasses) ([]models.Class, *reply.ErrorPayload) {
+	q := gorm.G[models.Class](s.classRepo.DB()).Limit(config.LIMIT_PAGINATED_DATA + 1)
+	if payload.Offset > 0 {
+		q = q.Offset(payload.Offset)
+	}
+	if payload.Grade > 0 && payload.Grade <= 12 {
+		q = q.Where("grade = ?", payload.Grade)
+	}
+	if payload.ClassNumber > 0 {
+		q = q.Where("class_number = ?", payload.ClassNumber)
+	}
+	if payload.Major != "" {
+		q = q.Where("major = ?", payload.Major)
+	}
+
+	classes, err := q.Find(s.ctx)
+	if err != nil {
+		return nil, errorlib.MakeServerError(err)
+	}
+
+	for i, class := range classes {
+		classes[i].Name = class.GetName()
+	}
+
+	return classes, nil
 }
