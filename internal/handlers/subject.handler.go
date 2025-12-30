@@ -153,3 +153,31 @@ func (h *Subject) DeleteSubject(c *gin.Context) {
 
 	rp.Success(map[string]string{"id": payload.ID}).OkJSON()
 }
+
+// @Summary      Get teacher of subject id
+// @Description  Admin with permission read subject and teacher resource or teacher only
+// @Tags         subject
+// @Accept       json
+// @Produce      json
+// @Param				 Cookie   header 		string 	false	"access_token"
+// @Param				 Cookie2  header 		string 	true	"refresh_token"
+// @Param 			 id				path 			string  true  "subject id"
+// @Success      200  		{object}  swaglib.Envelope{data=[]models.Teacher}
+// @Response     default  {object}  swaglib.Envelope{data=reply.ErrorPayload}
+// @Router       /subjects/{id}/teachers [get]
+func (h *Subject) GetTeacherOfSubject(c *gin.Context) {
+	rp := replylib.Client.Use(adapter.AdaptGin(c))
+	var payload payloads.RequestGetTeacherOfSubject
+	if err := c.ShouldBindUri(&payload); err != nil {
+		rp.Error(replylib.CodeBadRequest, err.Error()).FailJSON()
+		return
+	}
+
+	teachers, errPayload := h.subjectService.ApplyContext(c).GetTeacherOfSubject(payload)
+	if errPayload != nil {
+		rp.Error(replylib.ErrorPayloadToArgs(errPayload)).FailJSON()
+		return
+	}
+
+	rp.Success(teachers).OkJSON()
+}

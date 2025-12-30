@@ -21,3 +21,7 @@ type RequestUpdateSubject struct {
 type RequestDeleteSubject struct {
 	ID string `uri:"id" validate:"required,uuid4"`
 }
+
+type RequestGetTeacherOfSubject struct {
+	SubjectID string `uri:"id" validate:"required,uuid4"`
+}

@@ -3,7 +3,6 @@ package services
 import (
 	"context"
 	"errors"
-	"log"
 	"school-information-system/config"
 	"school-information-system/internal/libs/errorlib"
 	"school-information-system/internal/libs/replylib"
@@ -18,7 +17,8 @@ import (
 )
 
 type Subject struct {
-	subjetRepo *repos.Subject
+	subjectRepo *repos.Subject
+	teacherRepo *repos.Teacher
 }
 
 type ContextedSubject struct {
@@ -27,8 +27,8 @@ type ContextedSubject struct {
 	ctx context.Context
 }
 
-func NewSubject(subjetRepo *repos.Subject) *Subject {
-	return &Subject{subjetRepo}
+func NewSubject(subjectRepo *repos.Subject, teacherRepo *repos.Teacher) *Subject {
+	return &Subject{subjectRepo, teacherRepo}
 }
 
 func (s *Subject) ApplyContext(c *gin.Context) *ContextedSubject {
@@ -43,7 +43,7 @@ func (s *ContextedSubject) CreateSubject(payload payloads.RequestCreateSubject) 
 
 	// create subject
 	subject := &models.Subject{Name: payload.Name}
-	err := s.subjetRepo.Create(s.ctx, subject)
+	err := s.subjectRepo.Create(s.ctx, subject)
 	if err != nil {
 		return nil, errorlib.MakeServerError(err)
 	}
@@ -58,7 +58,7 @@ func (s *ContextedSubject) GetSubject(payload payloads.RequestGetSubject) (*mode
 	}
 
 	// get subject
-	subject, err := s.subjetRepo.GetByID(s.ctx, payload.ID)
+	subject, err := s.subjectRepo.GetByID(s.ctx, payload.ID)
 	if err != nil {
 		return nil, errorlib.MakeServerError(err)
 	}
@@ -67,14 +67,13 @@ func (s *ContextedSubject) GetSubject(payload payloads.RequestGetSubject) (*mode
 }
 
 func (s *ContextedSubject) GetSubjects(payload payloads.RequestGetSubjects) ([]models.Subject, *reply.ErrorPayload) {
-	log.Println(payload)
 	// validate payload
 	if errPayload := validatorlib.ValidateStructToReply(payload); errPayload != nil {
 		return nil, errPayload
 	}
 
 	// get subjects
-	q := gorm.G[models.Subject](s.subjetRepo.DB()).
+	q := gorm.G[models.Subject](s.subjectRepo.DB()).
 		Limit(config.LIMIT_PAGINATED_DATA + 1)
 	if payload.Offset > 0 {
 		q = q.Offset(payload.Offset)
@@ -99,7 +98,7 @@ func (s *ContextedSubject) UpdateSubject(payload payloads.RequestUpdateSubject) 
 
 	// update and get subject
 	subject := models.Subject{Name: payload.Name}
-	subject, err := s.subjetRepo.UpdateByIDAndGet(s.ctx, payload.ID, subject)
+	subject, err := s.subjectRepo.UpdateByIDAndGet(s.ctx, payload.ID, subject)
 	if err != nil {
 		return nil, errorlib.MakeServerError(err)
 	}
@@ -113,8 +112,8 @@ func (s *ContextedSubject) DeleteSubject(payload payloads.RequestDeleteSubject) 
 		return errPayload
 	}
 
-	s.subjetRepo.DB().Transaction(func(tx *gorm.DB) error {
-		subjectRepo := s.subjetRepo.WithTx(tx)
+	s.subjectRepo.DB().Transaction(func(tx *gorm.DB) error {
+		subjectRepo := s.subjectRepo.WithTx(tx)
 
 		// validate if there is another teacher related to this subject
 		var related bool
@@ -144,6 +143,34 @@ func (s *ContextedSubject) DeleteSubject(payload payloads.RequestDeleteSubject) 
 
 		return nil
 	})
+
+	return
+}
+
+func (s *ContextedSubject) GetTeacherOfSubject(payload payloads.RequestGetTeacherOfSubject) (teachers []models.Teacher, errPayload *reply.ErrorPayload) {
+	// validate payload
+	if errPayload := validatorlib.ValidateStructToReply(payload); errPayload != nil {
+		return nil, errPayload
+	}
+
+	// validate presencce
+	exists, err := s.subjectRepo.Exists(s.ctx, "id = ?", payload.SubjectID)
+	if err != nil {
+		return nil, errorlib.MakeServerError(err)
+	}
+	if !exists {
+		return nil, errorlib.MakeNotFound(gorm.ErrRecordNotFound, "subject not found", nil)
+	}
+
+	// get teachers
+	err = s.teacherRepo.DB().WithContext(s.ctx).
+		Joins("JOIN teacher_subjects ON teacher_subjects.teacher_id = teachers.id").
+		Where("teacher_subjects.subject_id = ?", payload.SubjectID).
+		Find(&teachers).Error
+
+	if err != nil {
+		return nil, errorlib.MakeServerError(err)
+	}
 
 	return
 }

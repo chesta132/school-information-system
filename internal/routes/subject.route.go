@@ -10,7 +10,7 @@ import (
 )
 
 func (rt *Route) RegisterSubject(group *gin.RouterGroup) {
-	subjectService := services.NewSubject(rt.rp.Subject())
+	subjectService := services.NewSubject(rt.rp.Subject(), rt.rp.Teacher())
 	handler := handlers.NewSubject(subjectService)
 
 	mw := middlewares.NewAuth(rt.rp.User(), rt.rp.Revoked())
@@ -41,4 +41,14 @@ func (rt *Route) RegisterSubject(group *gin.RouterGroup) {
 		models.ResourceSubject,
 		[]models.PermissionAction{models.ActionDelete},
 	), handler.DeleteSubject)
+
+	group.GET("/:id/teachers", mw.PermissionProtected(
+		models.ResourceSubject,
+		[]models.PermissionAction{models.ActionRead},
+		middlewares.WithSkipRole(models.RoleTeacher),
+	), mw.PermissionProtected(
+		models.ResourceTeacher,
+		[]models.PermissionAction{models.ActionRead},
+		middlewares.WithSkipRole(models.RoleTeacher),
+	), handler.GetTeacherOfSubject)
 }
