@@ -118,10 +118,7 @@ func (s *ContextedClass) GetClass(payload payloads.RequestGetClass) (*models.Cla
 }
 
 func (s *ContextedClass) GetClasses(payload payloads.RequestGetClasses) ([]models.Class, *reply.ErrorPayload) {
-	q := gorm.G[models.Class](s.classRepo.DB()).Limit(config.LIMIT_PAGINATED_DATA + 1)
-	if payload.Offset > 0 {
-		q = q.Offset(payload.Offset)
-	}
+	q := gorm.G[models.Class](s.classRepo.DB()).Limit(config.LIMIT_PAGINATED_DATA + 1).Offset(payload.Offset)
 	if payload.Grade > 0 && payload.Grade <= 12 {
 		q = q.Where("grade = ?", payload.Grade)
 	}

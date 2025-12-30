@@ -93,6 +93,10 @@ func (h *Permission) GetPermissions(c *gin.Context) {
 	var payload payloads.RequestGetPermissions
 	c.ShouldBindQuery(&payload)
 
+	if payload.Offset < 0 {
+		payload.Offset = 0
+	}
+
 	perm, errPayload := h.permService.ApplyContext(c).GetPermissions(payload)
 	if errPayload != nil {
 		rp.Error(replylib.ErrorPayloadToArgs(errPayload)).FailJSON()

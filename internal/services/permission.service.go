@@ -120,7 +120,7 @@ func (s *ContextedPermission) GetPermissions(payload payloads.RequestGetPermissi
 		return
 	}
 
-	q := gorm.G[models.Permission](s.userRepo.DB()).Limit(config.LIMIT_PAGINATED_DATA + 1)
+	q := gorm.G[models.Permission](s.userRepo.DB()).Limit(config.LIMIT_PAGINATED_DATA + 1).Offset(payload.Offset)
 	// action query
 	if len(payload.Actions) > 0 {
 		payload.Actions = slicelib.Unique(payload.Actions)
@@ -141,10 +141,6 @@ func (s *ContextedPermission) GetPermissions(payload payloads.RequestGetPermissi
 	// name match query
 	if payload.Query != "" {
 		q = q.Where("LOWER(name) LIKE LOWER(?)", "%"+payload.Query+"%")
-	}
-	// offset query
-	if payload.Offset > 0 {
-		q = q.Offset(payload.Offset)
 	}
 
 	permissions, err := q.Find(s.ctx)

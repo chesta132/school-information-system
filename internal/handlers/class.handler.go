@@ -86,6 +86,10 @@ func (h *Class) GetClasses(c *gin.Context) {
 	var payload payloads.RequestGetClasses
 	c.ShouldBindQuery(&payload)
 
+	if payload.Offset < 0 {
+		payload.Offset = 0
+	}
+
 	classes, errPayload := h.classService.ApplyContext(c).GetClasses(payload)
 	if errPayload != nil {
 		rp.Error(replylib.ErrorPayloadToArgs(errPayload)).FailJSON()

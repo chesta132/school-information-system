@@ -87,6 +87,10 @@ func (h *Subject) GetSubjects(c *gin.Context) {
 	var payload payloads.RequestGetSubjects
 	c.ShouldBindQuery(&payload)
 
+	if payload.Offset < 0 {
+		payload.Offset = 0
+	}
+
 	subjects, errPayload := h.subjectService.ApplyContext(c).GetSubjects(payload)
 	if errPayload != nil {
 		rp.Error(replylib.ErrorPayloadToArgs(errPayload)).FailJSON()

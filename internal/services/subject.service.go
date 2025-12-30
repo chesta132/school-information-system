@@ -74,10 +74,7 @@ func (s *ContextedSubject) GetSubjects(payload payloads.RequestGetSubjects) ([]m
 
 	// get subjects
 	q := gorm.G[models.Subject](s.subjectRepo.DB()).
-		Limit(config.LIMIT_PAGINATED_DATA + 1)
-	if payload.Offset > 0 {
-		q = q.Offset(payload.Offset)
-	}
+		Limit(config.LIMIT_PAGINATED_DATA + 1).Offset(payload.Offset)
 	if payload.Query != "" {
 		q = q.Where("LOWER(name) LIKE LOWER(?)", "%"+payload.Query+"%")
 	}
