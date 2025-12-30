@@ -55,21 +55,15 @@ func (s *ContextedRoleSetter) SetRole(payload payloads.RequestSetRole) (*models.
 	switch payload.TargetRole {
 	// set role student
 	case models.RoleStudent:
-		stud, err := s.setRoleStudent(*payload.StudentData, user)
-		user.StudentProfile = stud
-		return &user, err
+		return &user, s.setRoleStudent(*payload.StudentData, &user)
 
 		// set role teacher
 	case models.RoleTeacher:
-		teacher, err := s.setRoleTeacher(*payload.TeacherData, user)
-		user.TeacherProfile = teacher
-		return &user, err
+		return &user, s.setRoleTeacher(*payload.TeacherData, &user)
 
 		// set role admin
 	case models.RoleAdmin:
-		admin, err := s.setRoleAdmin(*payload.AdminData, user)
-		user.AdminProfile = admin
-		return &user, err
+		return &user, s.setRoleAdmin(*payload.AdminData, &user)
 	}
 
 	return nil, &reply.ErrorPayload{
@@ -79,10 +73,10 @@ func (s *ContextedRoleSetter) SetRole(payload payloads.RequestSetRole) (*models.
 	}
 }
 
-func (s *ContextedRoleSetter) setRoleStudent(payload payloads.RequestSetRoleStudent, user models.User) (student *models.Student, errPayload *reply.ErrorPayload) {
+func (s *ContextedRoleSetter) setRoleStudent(payload payloads.RequestSetRoleStudent, user *models.User) (errPayload *reply.ErrorPayload) {
 	// validate payload
 	if errPayload := validatorlib.ValidateStructToReply(payload); errPayload != nil {
-		return nil, errPayload
+		return errPayload
 	}
 
 	// transaction to rollback if error
@@ -127,11 +121,12 @@ func (s *ContextedRoleSetter) setRoleStudent(payload payloads.RequestSetRoleStud
 		}
 
 		// create student
-		student = &models.Student{
+		student := &models.Student{
 			NISN:    payload.NISN,
 			UserID:  user.ID,
 			ClassID: payload.ClassID,
 		}
+		user.StudentProfile = student
 		err = studentRepo.Create(s.ctx, student)
 		if err != nil {
 			errPayload = errorlib.MakeServerError(err)
@@ -148,10 +143,10 @@ func (s *ContextedRoleSetter) setRoleStudent(payload payloads.RequestSetRoleStud
 	return
 }
 
-func (s *ContextedRoleSetter) setRoleTeacher(payload payloads.RequestSetRoleTeacher, user models.User) (teacher *models.Teacher, errPayload *reply.ErrorPayload) {
+func (s *ContextedRoleSetter) setRoleTeacher(payload payloads.RequestSetRoleTeacher, user *models.User) (errPayload *reply.ErrorPayload) {
 	// validate payload
 	if errPayload := validatorlib.ValidateStructToReply(payload); errPayload != nil {
-		return nil, errPayload
+		return errPayload
 	}
 
 	// transaction to rollback if error
@@ -202,7 +197,7 @@ func (s *ContextedRoleSetter) setRoleTeacher(payload payloads.RequestSetRoleTeac
 		}
 
 		// create teacher
-		teacher = &models.Teacher{
+		teacher := &models.Teacher{
 			NUPTK:      payload.NUPTK,
 			EmployeeID: payload.EmployeeID,
 			TimestampJoinTime: models.TimestampJoinTime{
@@ -210,6 +205,7 @@ func (s *ContextedRoleSetter) setRoleTeacher(payload payloads.RequestSetRoleTeac
 			},
 			UserID: user.ID,
 		}
+		user.TeacherProfile = teacher
 		err = teacherRepo.Create(s.ctx, teacher)
 		if err != nil {
 			errPayload = errorlib.MakeServerError(err)
@@ -226,10 +222,10 @@ func (s *ContextedRoleSetter) setRoleTeacher(payload payloads.RequestSetRoleTeac
 	return
 }
 
-func (s *ContextedRoleSetter) setRoleAdmin(payload payloads.RequestSetRoleAdmin, user models.User) (admin *models.Admin, errPayload *reply.ErrorPayload) {
+func (s *ContextedRoleSetter) setRoleAdmin(payload payloads.RequestSetRoleAdmin, user *models.User) (errPayload *reply.ErrorPayload) {
 	// validate payload
 	if errPayload := validatorlib.ValidateStructToReply(payload); errPayload != nil {
-		return nil, errPayload
+		return errPayload
 	}
 
 	// transaction to rollback if error
@@ -263,7 +259,7 @@ func (s *ContextedRoleSetter) setRoleAdmin(payload payloads.RequestSetRoleAdmin,
 
 		// create admin
 		// set permissions with other route
-		admin = &models.Admin{
+		admin := &models.Admin{
 			StaffRole:  payload.StaffRole,
 			EmployeeID: payload.EmployeeID,
 			TimestampJoinTime: models.TimestampJoinTime{
@@ -271,6 +267,7 @@ func (s *ContextedRoleSetter) setRoleAdmin(payload payloads.RequestSetRoleAdmin,
 			},
 			UserID: user.ID,
 		}
+		user.AdminProfile = admin
 		return adminRepo.Create(s.ctx, admin)
 	})
 	return
