@@ -10,7 +10,7 @@ import (
 )
 
 func (rt *Route) RegisterClass(group *gin.RouterGroup) {
-	classService := services.NewClass(rt.rp.Class(), rt.rp.Teacher(), rt.rp.Student())
+	classService := services.NewClass(rt.rp.Class(), rt.rp.User(), rt.rp.Teacher(), rt.rp.Student())
 
 	handler := handlers.NewClass(classService)
 
@@ -41,4 +41,14 @@ func (rt *Route) RegisterClass(group *gin.RouterGroup) {
 		models.ResourceClass,
 		[]models.PermissionAction{models.ActionDelete},
 	), handler.DeleteClass)
+
+	// RELATION
+
+	group.GET("/:id/form-teacher", mw.PermissionProtected(
+		models.ResourceClass,
+		[]models.PermissionAction{models.ActionRead},
+	), mw.PermissionProtected(
+		models.ResourceTeacher,
+		[]models.PermissionAction{models.ActionRead},
+	), handler.GetFormTeacher)
 }
