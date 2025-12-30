@@ -1,5 +1,7 @@
 package payloads
 
+import "school-information-system/internal/models"
+
 type RequestCreateClass struct {
 	Grade         int    `json:"grade" validate:"required,min=1,max=12" example:"10"`
 	Major         string `json:"major" validate:"required" example:"TJKT"`
@@ -27,4 +29,10 @@ type RequestUpdateClass struct {
 
 type RequestDeleteClass struct {
 	ID string `uri:"id" validate:"required,uuid4"`
+}
+
+type ResponseGetFullClass struct {
+	FormTeacher *models.User  `json:"form_teacher"`
+	Class       *models.Class `json:"class"`
+	Students    []models.User `json:"students"`
 }

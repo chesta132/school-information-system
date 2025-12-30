@@ -51,4 +51,15 @@ func (rt *Route) RegisterClass(group *gin.RouterGroup) {
 		models.ResourceTeacher,
 		[]models.PermissionAction{models.ActionRead},
 	), handler.GetFormTeacher)
+
+	group.GET("/:id/full", mw.PermissionProtected(
+		models.ResourceClass,
+		[]models.PermissionAction{models.ActionRead},
+	), mw.PermissionProtected(
+		models.ResourceTeacher,
+		[]models.PermissionAction{models.ActionRead},
+	), mw.PermissionProtected(
+		models.ResourceStudent,
+		[]models.PermissionAction{models.ActionRead},
+	), handler.GetFull)
 }

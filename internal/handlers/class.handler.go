@@ -183,3 +183,27 @@ func (h *Class) GetFormTeacher(c *gin.Context) {
 
 	rp.Success(user).OkJSON()
 }
+
+// @Summary      Get form teacher of class
+// @Description  Admin with permission read class, teacher, and student resource only
+// @Tags         class
+// @Accept       json
+// @Produce      json
+// @Param				 Cookie   header 		string 	false	"access_token"
+// @Param				 Cookie2  header 		string 	true	"refresh_token"
+// @Success      200  		{object}  swaglib.Envelope{data=payloads.ResponseGetFullClass}
+// @Response     default  {object}  swaglib.Envelope{data=reply.ErrorPayload}
+// @Router       /classes/{id}/full [get]
+func (h *Class) GetFull(c *gin.Context) {
+	rp := replylib.Client.Use(adapter.AdaptGin(c))
+	var payload payloads.RequestGetClass
+	c.ShouldBindUri(&payload)
+
+	full, errPayload := h.classService.ApplyContext(c).GetFull(payload)
+	if errPayload != nil {
+		rp.Error(replylib.ErrorPayloadToArgs(errPayload)).FailJSON()
+		return
+	}
+
+	rp.Success(full).OkJSON()
+}

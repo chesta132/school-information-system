@@ -18,6 +18,7 @@ import (
 
 type Class struct {
 	classRepo   *repos.Class
+	userRepo    *repos.User
 	teacherRepo *repos.Teacher
 	studentRepo *repos.Student
 }
@@ -28,8 +29,8 @@ type ContextedClass struct {
 	ctx context.Context
 }
 
-func NewClass(classRepo *repos.Class, teacherRepo *repos.Teacher, studentRepo *repos.Student) *Class {
-	return &Class{classRepo, teacherRepo, studentRepo}
+func NewClass(classRepo *repos.Class, userRepo *repos.User, teacherRepo *repos.Teacher, studentRepo *repos.Student) *Class {
+	return &Class{classRepo, userRepo, teacherRepo, studentRepo}
 }
 
 func (s *Class) ApplyContext(c *gin.Context) *ContextedClass {
