@@ -2,7 +2,9 @@ package services
 
 import (
 	"context"
+	"errors"
 	"school-information-system/internal/libs/errorlib"
+	"school-information-system/internal/libs/replylib"
 	"school-information-system/internal/libs/validatorlib"
 	"school-information-system/internal/models"
 	"school-information-system/internal/models/payloads"
@@ -53,6 +55,29 @@ func (s *ContextedClass) CreateClass(payload payloads.RequestCreateClass) (class
 				"form_teacher_id": "teacher with this id not found",
 			})
 			return gorm.ErrRecordNotFound
+		}
+
+		// check is name exists
+		classExists, err := classRepo.Exists(s.ctx,
+			"grade = ? AND major = ? AND class_number = ?",
+			payload.Grade, payload.Major, payload.ClassNumber,
+		)
+		if err != nil {
+			errPayload = errorlib.MakeServerError(err)
+			return err
+		}
+		if classExists {
+			msg := "class with this name already exist"
+			errPayload = &reply.ErrorPayload{
+				Code:    replylib.CodeConflict,
+				Message: msg,
+				Fields: reply.FieldsError{
+					"grade":        msg,
+					"major":        msg,
+					"class_number": msg,
+				},
+			}
+			return errors.New(msg)
 		}
 
 		// create class
