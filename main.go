@@ -34,6 +34,7 @@ func main() {
 		router.RegisterAuth(api.Group("/auth"))
 		router.RegisterAdmin(api.Group("/admins"))
 		router.RegisterSubject(api.Group("/subjects"))
+		router.RegisterClass(api.Group("/classes"))
 	}
 
 	// start cron jobs
