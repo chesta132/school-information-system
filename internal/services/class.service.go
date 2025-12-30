@@ -176,3 +176,43 @@ func (s *ContextedClass) UpdateClass(payload payloads.RequestUpdateClass) (class
 	})
 	return
 }
+
+func (s *ContextedClass) DeleteClass(payload payloads.RequestDeleteClass) (errPayload *reply.ErrorPayload) {
+	// validate payload
+	if errPayload := validatorlib.ValidateStructToReply(payload); errPayload != nil {
+		return errPayload
+	}
+
+	s.classRepo.DB().Transaction(func(tx *gorm.DB) error {
+		classRepo := s.classRepo.WithTx(tx)
+		studentRepo := s.studentRepo.WithTx(tx)
+
+		// check student relation
+		studentExists, err := studentRepo.Exists(s.ctx, "class_id = ?", payload.ID)
+		if err != nil {
+			errPayload = errorlib.MakeServerError(err)
+			return err
+		}
+		if studentExists {
+			err = errors.New("class still related with student(s)")
+			errPayload = &reply.ErrorPayload{
+				Code:    replylib.CodeConflict,
+				Message: err.Error(),
+			}
+			return err
+		}
+
+		// delete class
+		ok, err := classRepo.DeleteByID(s.ctx, payload.ID)
+		if err != nil {
+			errPayload = errorlib.MakeServerError(err)
+			return err
+		}
+		if !ok {
+			errPayload = errorlib.MakeNotFound(gorm.ErrRecordNotFound, "class not found", nil)
+			return gorm.ErrRecordNotFound
+		}
+		return nil
+	})
+	return
+}

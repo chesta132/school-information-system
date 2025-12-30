@@ -19,7 +19,7 @@ func (rt *Route) RegisterClass(group *gin.RouterGroup) {
 	group.POST("/", mw.PermissionProtected(
 		models.ResourceClass,
 		[]models.PermissionAction{models.ActionCreate},
-	), handler.CreateSubject)
+	), handler.CreateClass)
 
 	group.GET("/:id", mw.PermissionProtected(
 		models.ResourceClass,
@@ -36,4 +36,9 @@ func (rt *Route) RegisterClass(group *gin.RouterGroup) {
 		models.ResourceClass,
 		[]models.PermissionAction{models.ActionUpdate},
 	), handler.UpdateClasss)
+
+	group.DELETE("/:id", mw.PermissionProtected(
+		models.ResourceClass,
+		[]models.PermissionAction{models.ActionDelete},
+	), handler.DeleteClass)
 }

@@ -3,6 +3,7 @@ package handlers
 import (
 	"school-information-system/config"
 	"school-information-system/internal/libs/replylib"
+	"school-information-system/internal/models"
 	"school-information-system/internal/models/payloads"
 	"school-information-system/internal/services"
 
@@ -29,7 +30,7 @@ func NewClass(classService *services.Class) *Class {
 // @Success      201  		{object}  swaglib.Envelope{data=models.Class,meta=swaglib.Info}
 // @Response     default  {object}  swaglib.Envelope{data=reply.ErrorPayload}
 // @Router       /classes [post]
-func (h *Class) CreateSubject(c *gin.Context) {
+func (h *Class) CreateClass(c *gin.Context) {
 	rp := replylib.Client.Use(adapter.AdaptGin(c))
 	var payload payloads.RequestCreateClass
 	if err := c.ShouldBindJSON(&payload); err != nil {
@@ -126,4 +127,29 @@ func (h *Class) UpdateClasss(c *gin.Context) {
 	}
 
 	rp.Success(class).OkJSON()
+}
+
+// @Summary      Delete class
+// @Description  Admin with permission delete class resource only
+// @Tags         class
+// @Accept       json
+// @Produce      json
+// @Param				 Cookie   header 		string 	false	"access_token"
+// @Param				 Cookie2  header 		string 	true	"refresh_token"
+// @Param 			 id				path 			string  true  "class id"
+// @Success      200  		{object}  swaglib.Envelope{data=models.Id}
+// @Response     default  {object}  swaglib.Envelope{data=reply.ErrorPayload}
+// @Router       /classes/{id} [delete]
+func (h *Class) DeleteClass(c *gin.Context) {
+	rp := replylib.Client.Use(adapter.AdaptGin(c))
+	var payload payloads.RequestDeleteClass
+	c.ShouldBindUri(&payload)
+
+	errPayload := h.classService.ApplyContext(c).DeleteClass(payload)
+	if errPayload != nil {
+		rp.Error(replylib.ErrorPayloadToArgs(errPayload)).FailJSON()
+		return
+	}
+
+	rp.Success(&models.Id{ID: payload.ID}).OkJSON()
 }
