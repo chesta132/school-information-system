@@ -532,7 +532,11 @@ const docTemplate = `{
                             "enum": [
                                 "role",
                                 "permission",
-                                "subject"
+                                "admin",
+                                "teacher",
+                                "student",
+                                "subject",
+                                "class"
                             ],
                             "type": "string"
                         },
@@ -1505,6 +1509,84 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/subjects/{id}/teachers": {
+            "get": {
+                "description": "Admin with permission read subject and teacher resource or teacher only",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "subject"
+                ],
+                "summary": "Get teacher of subject id",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "access_token",
+                        "name": "Cookie",
+                        "in": "header"
+                    },
+                    {
+                        "type": "string",
+                        "description": "refresh_token",
+                        "name": "Cookie2",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "subject id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/swaglib.Envelope"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/models.Teacher"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "default": {
+                        "description": "",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/swaglib.Envelope"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/reply.ErrorPayload"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
@@ -1660,12 +1742,20 @@ const docTemplate = `{
             "enum": [
                 "role",
                 "permission",
-                "subject"
+                "admin",
+                "teacher",
+                "student",
+                "subject",
+                "class"
             ],
             "x-enum-varnames": [
                 "ResourceRole",
                 "ResourcePermission",
-                "ResourceSubject"
+                "ResourceAdmin",
+                "ResourceTeacher",
+                "ResourceStudent",
+                "ResourceSubject",
+                "ResourceClass"
             ]
         },
         "models.Student": {
@@ -1847,11 +1937,6 @@ const docTemplate = `{
                     "example": "role setter"
                 },
                 "resource": {
-                    "enum": [
-                        "role",
-                        "permission",
-                        "subject"
-                    ],
                     "allOf": [
                         {
                             "$ref": "#/definitions/models.PermissionResource"
@@ -1966,16 +2051,7 @@ const docTemplate = `{
                     "example": "479b5b5f-81b1-4669-91a5-b5bf69e597c6"
                 },
                 "target_role": {
-                    "enum": [
-                        "student",
-                        "teacher",
-                        "admin"
-                    ],
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/models.UserRole"
-                        }
-                    ]
+                    "$ref": "#/definitions/models.UserRole"
                 },
                 "teacher_data": {
                     "description": "empty ig target_role not teacher",
@@ -2113,15 +2189,7 @@ const docTemplate = `{
                     "example": "Chesta Ardiona"
                 },
                 "gender": {
-                    "enum": [
-                        "male",
-                        "female"
-                    ],
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/models.UserGender"
-                        }
-                    ]
+                    "$ref": "#/definitions/models.UserGender"
                 },
                 "password": {
                     "type": "string",
