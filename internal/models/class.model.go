@@ -8,7 +8,7 @@ type Class struct {
 	Major         string   `json:"major" example:"TJKT"`
 	ClassNumber   int      `json:"class_number" example:"3"`
 	Name          string   `json:"name" gorm:"-" example:"10 TJKT 3"`
-	FormTeacherID string   `json:"-"`
+	FormTeacherID string   `json:"form_teacher_id,omitempty"`
 	FormTeacher   *Teacher `json:"form_teacher,omitempty" swaggerignore:"true"`
 
 	Timestamp

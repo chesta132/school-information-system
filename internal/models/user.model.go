@@ -34,8 +34,8 @@ type Student struct {
 type Teacher struct {
 	Id
 	Subjects   []*Subject `gorm:"many2many:teacher_subjects" json:"subjects,omitempty" swaggerignore:"true"`
-	NUPTK      string     `gorm:"unique;not null" json:"NUPTK,omitempty" example:"1234567890123456"`
-	EmployeeID string     `gorm:"not null" json:"employee_id,omitempty" example:"TEA001"`
+	NUPTK      string     `gorm:"unique;not null" json:"NUPTK" example:"1234567890123456"`
+	EmployeeID string     `gorm:"not null" json:"employee_id" example:"TEA001"`
 
 	UserID string `gorm:"uniqueIndex;not null" json:"-"`
 

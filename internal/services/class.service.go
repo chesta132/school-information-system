@@ -107,10 +107,7 @@ func (s *ContextedClass) GetClass(payload payloads.RequestGetClass) (*models.Cla
 		return nil, errPayload
 	}
 
-	class, err := gorm.G[models.Class](s.classRepo.DB()).Preload("FormTeacher", func(db gorm.PreloadBuilder) error {
-		db.Select("id")
-		return nil
-	}).Where("id = ?", payload.ID).First(s.ctx)
+	class, err := s.classRepo.GetByID(s.ctx, payload.ID)
 	if err != nil {
 		return nil, errorlib.MakeNotFound(err, "class not found", nil)
 	}

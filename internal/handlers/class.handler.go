@@ -53,7 +53,7 @@ func (h *Class) CreateSubject(c *gin.Context) {
 // @Param				 Cookie   header 		string 	false	"access_token"
 // @Param				 Cookie2  header 		string 	true	"refresh_token"
 // @Param 			 id				path 			string  true  "class id"
-// @Success      200  		{object}  swaglib.Envelope{data=models.Class{form_teacher=models.Id}}
+// @Success      200  		{object}  swaglib.Envelope{data=models.Class{form_teacher_id=string}}
 // @Response     default  {object}  swaglib.Envelope{data=reply.ErrorPayload}
 // @Router       /classes/{id} [get]
 func (h *Class) GetClass(c *gin.Context) {
