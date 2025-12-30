@@ -100,3 +100,21 @@ func (s *ContextedClass) CreateClass(payload payloads.RequestCreateClass) (class
 
 	return
 }
+
+func (s *ContextedClass) GetClass(payload payloads.RequestGetClass) (*models.Class, *reply.ErrorPayload) {
+	// validate payload
+	if errPayload := validatorlib.ValidateStructToReply(payload); errPayload != nil {
+		return nil, errPayload
+	}
+
+	class, err := gorm.G[models.Class](s.classRepo.DB()).Preload("FormTeacher", func(db gorm.PreloadBuilder) error {
+		db.Select("id")
+		return nil
+	}).Where("id = ?", payload.ID).First(s.ctx)
+	if err != nil {
+		return nil, errorlib.MakeNotFound(err, "class not found", nil)
+	}
+
+	class.GetName()
+	return &class, nil
+}

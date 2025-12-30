@@ -16,7 +16,7 @@ type Timestamp struct {
 }
 
 type TimestampJoinTime struct {
-	JoinedAt  time.Time `gorm:"not null" json:"joined_at" example:"2006-01-02T15:04:05Z07:00"`
+	JoinedAt  time.Time `gorm:"not null" json:"joined_at,omitzero" example:"2006-01-02T15:04:05Z07:00"`
 	CreatedAt time.Time `gorm:"autoCreateTime" json:"created_at,omitzero" example:"2006-01-02T15:04:05Z07:00"`
 	UpdatedAt time.Time `gorm:"autoUpdateTime" json:"updated_at,omitzero" example:"2006-01-02T15:04:05Z07:00"`
 }

@@ -20,4 +20,10 @@ func (rt *Route) RegisterClass(group *gin.RouterGroup) {
 		models.ResourceClass,
 		[]models.PermissionAction{models.ActionCreate},
 	), handler.CreateSubject)
+
+	group.GET("/:id", mw.PermissionProtected(
+		models.ResourceClass,
+		[]models.PermissionAction{models.ActionRead},
+		middlewares.WithSkipRole(models.RoleTeacher),
+	), handler.GetClass)
 }
