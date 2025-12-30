@@ -11,7 +11,7 @@ const (
 	PermRoleName       = "role full manage"
 	PermPermissionName = "permission full manage"
 
-	PermAdminName   = "teacher full manage"
+	PermAdminName   = "admin full manage"
 	PermTeacherName = "teacher full manage"
 	PermStudentName = "student full manage"
 
@@ -46,7 +46,7 @@ var PermissionSeeds = []models.Permission{
 		Actions:     []models.PermissionAction{models.ActionCreate, models.ActionRead, models.ActionUpdate, models.ActionDelete},
 	},
 	{
-		Name:        PermAdminName,
+		Name:        PermStudentName,
 		Resource:    models.ResourceStudent,
 		Description: "Full access to manage students",
 		Actions:     []models.PermissionAction{models.ActionCreate, models.ActionRead, models.ActionUpdate, models.ActionDelete},
