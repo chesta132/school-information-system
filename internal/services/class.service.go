@@ -19,6 +19,7 @@ import (
 type Class struct {
 	classRepo   *repos.Class
 	teacherRepo *repos.Teacher
+	studentRepo *repos.Student
 }
 
 type ContextedClass struct {
@@ -27,8 +28,8 @@ type ContextedClass struct {
 	ctx context.Context
 }
 
-func NewClass(classRepo *repos.Class, teacherRepo *repos.Teacher) *Class {
-	return &Class{classRepo, teacherRepo}
+func NewClass(classRepo *repos.Class, teacherRepo *repos.Teacher, studentRepo *repos.Student) *Class {
+	return &Class{classRepo, teacherRepo, studentRepo}
 }
 
 func (s *Class) ApplyContext(c *gin.Context) *ContextedClass {
@@ -139,4 +140,39 @@ func (s *ContextedClass) GetClasses(payload payloads.RequestGetClasses) ([]model
 	}
 
 	return classes, nil
+}
+
+func (s *ContextedClass) UpdateClass(payload payloads.RequestUpdateClass) (class *models.Class, errPayload *reply.ErrorPayload) {
+	// validate payload
+	if errPayload := validatorlib.ValidateStructToReply(payload); errPayload != nil {
+		return nil, errPayload
+	}
+
+	s.classRepo.DB().Transaction(func(tx *gorm.DB) error {
+		classRepo := s.classRepo.WithTx(tx)
+
+		// check presence
+		classExists, err := classRepo.Exists(s.ctx, "id = ?", payload.ID)
+		if err != nil {
+			errPayload = errorlib.MakeServerError(err)
+			return err
+		}
+		if !classExists {
+			errPayload = errorlib.MakeNotFound(gorm.ErrRecordNotFound, "class not found", nil)
+			return gorm.ErrRecordNotFound
+		}
+
+		// update class
+		update := models.Class{Grade: payload.Grade, Major: payload.Major, ClassNumber: payload.ClassNumber}
+		classUpdt, err := classRepo.UpdateByIDAndGet(s.ctx, payload.ID, update)
+
+		if err != nil {
+			errPayload = errorlib.MakeServerError(err)
+			return err
+		}
+		classUpdt.Name = classUpdt.GetName()
+		class = &classUpdt
+		return nil
+	})
+	return
 }

@@ -17,3 +17,14 @@ type RequestGetClasses struct {
 	Major       string `form:"major" example:"TJKT"`
 	ClassNumber int    `form:"class_number" example:"3"`
 }
+
+type RequestUpdateClass struct {
+	ID          string `uri:"id" validate:"required,uuid4" swaggerignore:"true"`
+	Grade       int    `json:"grade" validate:"omitempty,min=1,max=12" example:"10"`
+	Major       string `json:"major" example:"TJKT"`
+	ClassNumber int    `json:"class_number" validate:"omitempty,min=1" example:"3"`
+}
+
+type RequestDeleteClass struct {
+	ID string `uri:"id" validate:"required,uuid4"`
+}
