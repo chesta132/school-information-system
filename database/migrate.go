@@ -27,7 +27,13 @@ func Migrate(db *gorm.DB) {
 	if err := CreateEnum(db, "permission_resource", []string{
 		string(models.ResourceRole),
 		string(models.ResourcePermission),
+
+		string(models.ResourceAdmin),
+		string(models.ResourceTeacher),
+		string(models.ResourceStudent),
+
 		string(models.ResourceSubject),
+		string(models.ResourceClass),
 	}); err != nil {
 		log.Fatal("[MIGRATE] failed to create permission resource enum", err.Error())
 	}

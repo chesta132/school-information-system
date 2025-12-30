@@ -10,7 +10,13 @@ import (
 const (
 	PermRoleName       = "role full manage"
 	PermPermissionName = "permission full manage"
-	PermSubjectName    = "subject full manage"
+
+	PermAdminName   = "teacher full manage"
+	PermTeacherName = "teacher full manage"
+	PermStudentName = "student full manage"
+
+	PermSubjectName = "subject full manage"
+	PermClassName   = "class full manage"
 )
 
 var PermissionSeeds = []models.Permission{
@@ -26,10 +32,36 @@ var PermissionSeeds = []models.Permission{
 		Description: "Full access to manage permissions of users with admin role",
 		Actions:     []models.PermissionAction{models.ActionCreate, models.ActionRead, models.ActionUpdate, models.ActionDelete},
 	},
+
+	{
+		Name:        PermTeacherName,
+		Resource:    models.ResourceAdmin,
+		Description: "Full access to manage admins",
+		Actions:     []models.PermissionAction{models.ActionCreate, models.ActionRead, models.ActionUpdate, models.ActionDelete},
+	},
+	{
+		Name:        PermAdminName,
+		Resource:    models.ResourceTeacher,
+		Description: "Full access to manage teachers",
+		Actions:     []models.PermissionAction{models.ActionCreate, models.ActionRead, models.ActionUpdate, models.ActionDelete},
+	},
+	{
+		Name:        PermAdminName,
+		Resource:    models.ResourceStudent,
+		Description: "Full access to manage students",
+		Actions:     []models.PermissionAction{models.ActionCreate, models.ActionRead, models.ActionUpdate, models.ActionDelete},
+	},
+
 	{
 		Name:        PermSubjectName,
 		Resource:    models.ResourceSubject,
 		Description: "Full access to manage subjects",
+		Actions:     []models.PermissionAction{models.ActionCreate, models.ActionRead, models.ActionUpdate, models.ActionDelete},
+	},
+	{
+		Name:        PermClassName,
+		Resource:    models.ResourceClass,
+		Description: "Full access to manage class",
 		Actions:     []models.PermissionAction{models.ActionCreate, models.ActionRead, models.ActionUpdate, models.ActionDelete},
 	},
 }

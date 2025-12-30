@@ -22,10 +22,16 @@ const (
 	ActionDelete PermissionAction = "delete"
 )
 
-type PermissionResource string // "role", "permission", "subject"
+type PermissionResource string // "role", "permission", "admin", "teacher", "student", "subject", "class"
 
 const (
 	ResourceRole       PermissionResource = "role"
 	ResourcePermission PermissionResource = "permission"
-	ResourceSubject    PermissionResource = "subject"
+
+	ResourceAdmin   PermissionResource = "admin"
+	ResourceTeacher PermissionResource = "teacher"
+	ResourceStudent PermissionResource = "student"
+
+	ResourceSubject PermissionResource = "subject"
+	ResourceClass   PermissionResource = "class"
 )
