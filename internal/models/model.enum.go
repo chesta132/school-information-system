@@ -8,11 +8,20 @@ const (
 	RoleUnsetted UserRole = "unsetted"
 )
 
+var UserRoles = []UserRole{
+	RoleStudent,
+	RoleTeacher,
+	RoleAdmin,
+	RoleUnsetted,
+}
+
 type UserGender string // "male", "female"
 const (
 	GenderMale   UserGender = "male"
 	GenderFemale UserGender = "female"
 )
+
+var UserGenders = []UserGender{GenderMale, GenderFemale}
 
 type PermissionAction string // "create", "read", "update", "delete"
 const (
@@ -22,8 +31,14 @@ const (
 	ActionDelete PermissionAction = "delete"
 )
 
-type PermissionResource string // "role", "permission", "admin", "teacher", "student", "subject", "class"
+var PermissionActions = []PermissionAction{
+	ActionCreate,
+	ActionRead,
+	ActionUpdate,
+	ActionDelete,
+}
 
+type PermissionResource string // "role", "permission", "admin", "teacher", "student", "subject", "class"
 const (
 	ResourceRole       PermissionResource = "role"
 	ResourcePermission PermissionResource = "permission"
@@ -35,3 +50,15 @@ const (
 	ResourceSubject PermissionResource = "subject"
 	ResourceClass   PermissionResource = "class"
 )
+
+var PermissionResources = []PermissionResource{
+	ResourceRole,
+	ResourcePermission,
+
+	ResourceAdmin,
+	ResourceTeacher,
+	ResourceStudent,
+
+	ResourceSubject,
+	ResourceClass,
+}

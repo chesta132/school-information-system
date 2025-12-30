@@ -15,19 +15,19 @@ type RequestRevokePermission struct {
 type RequestCreatePermission struct {
 	Name        string                    `json:"name" validate:"required,min=10" example:"role setter"`
 	Description string                    `json:"description" validate:"required,min=10" example:"permission to set and read role"`
-	Resource    models.PermissionResource `json:"resource" validate:"required,oneof=role permission subject" example:"role"`
-	Actions     []models.PermissionAction `json:"actions" validate:"required,min=1,dive,oneof=create read update delete" example:"update,read"`
+	Resource    models.PermissionResource `json:"resource" validate:"required,permission_resource" example:"role"`
+	Actions     []models.PermissionAction `json:"actions" validate:"required,min=1,dive,permission_action" example:"update,read"`
 }
 
 type RequestGetPermission struct {
-	ID string `uri:"id" json:"id" validate:"required,uuid4"`
+	ID string `uri:"id" validate:"required,uuid4"`
 }
 
 type RequestGetPermissions struct {
 	Offset    int                         `form:"offset" example:"10"`
 	Query     string                      `form:"q" example:"rol"`
-	Resources []models.PermissionResource `form:"resource" validate:"dive,oneof=role permission subject"`
-	Actions   []models.PermissionAction   `form:"action" validate:"dive,oneof=create read update delete"`
+	Resources []models.PermissionResource `form:"resource" validate:"dive,permission_resource"`
+	Actions   []models.PermissionAction   `form:"action" validate:"dive,permission_action"`
 }
 
 type RequestUpdatePermission struct {
@@ -37,5 +37,5 @@ type RequestUpdatePermission struct {
 }
 
 type RequestDeletePermission struct {
-	ID string `uri:"id" json:"id" validate:"required,uuid4"`
+	ID string `uri:"id" validate:"required,uuid4"`
 }

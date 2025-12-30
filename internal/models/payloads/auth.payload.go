@@ -8,7 +8,7 @@ type RequestSignUp struct {
 	FullName   string            `json:"full_name" validate:"required" example:"Chesta Ardiona"`
 	Email      string            `json:"email" validate:"required,email" example:"chestaardi4@gmail.com"`
 	Password   string            `json:"password" validate:"required,min=8" example:"super.secret871798"`
-	Gender     models.UserGender `json:"gender" validate:"required,oneof=male female"`
+	Gender     models.UserGender `json:"gender" validate:"required,user_gender"`
 	Phone      string            `json:"phone" validate:"required" example:"+6281234567890"`
 	RememberMe bool              `json:"remember_me"`
 }

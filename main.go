@@ -6,7 +6,7 @@ import (
 	"school-information-system/database/seeds"
 	_ "school-information-system/docs"
 	"school-information-system/internal/cron"
-	"school-information-system/internal/libs/validatorlib"
+	_ "school-information-system/internal/libs/validatorlib"
 	"school-information-system/internal/repos"
 	"school-information-system/internal/routes"
 
@@ -22,9 +22,6 @@ func main() {
 	// setup database
 	db := database.Connect()
 	seeds.Migrate(db)
-
-	// setup validator
-	validatorlib.RegisterTagName()
 
 	// setup router
 	r := gin.Default()

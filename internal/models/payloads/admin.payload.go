@@ -15,7 +15,7 @@ type RequestInitiateAdmin struct {
 
 type RequestSetRole struct {
 	TargetID   string          `json:"target_id" validate:"required,uuid4" example:"479b5b5f-81b1-4669-91a5-b5bf69e597c6"`
-	TargetRole models.UserRole `json:"target_role" validate:"required,oneof=student teacher admin"`
+	TargetRole models.UserRole `json:"target_role" validate:"required,user_role"`
 
 	// empty ig target_role not student
 	StudentData *RequestSetRoleStudent `json:"student_data" prefix:"student_data." validate:"required_if=TargetRole student"`

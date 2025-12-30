@@ -1,8 +1,8 @@
 package validatorlib
 
 import (
-	"fmt"
 	"reflect"
+	"school-information-system/config"
 	"school-information-system/internal/libs/replylib"
 	"strings"
 
@@ -84,47 +84,18 @@ func TranslateError(err error, prefixMap map[string]string) reply.FieldsError {
 			fieldName = prefix + fieldName
 		}
 
-		// handle required error
+		// handle required error first
 		if err.Tag() == "required" {
-			fields[fieldName] = fmt.Sprintf("%s is required", fieldName)
+			fields[fieldName] = required(fieldName, err)
 			insertedErr[fieldName] = struct{}{}
 		}
 
 		// handle other validation errors
 		if _, ok := insertedErr[fieldName]; !ok {
-			switch err.Tag() {
-			case "email":
-				fields[fieldName] = fmt.Sprintf("%s is not valid email", fieldName)
+			if translator, ok := translateErrorMap[err.Tag()]; ok {
+				fields[fieldName] = translator(fieldName, err)
 				insertedErr[fieldName] = struct{}{}
-			case "oneof":
-				fields[fieldName] = fmt.Sprintf("%s is not a valid enum of [%s]", fieldName, err.Param())
-				insertedErr[fieldName] = struct{}{}
-			case "min", "max":
-				suffix := ""
-				switch err.Kind() {
-				case reflect.Slice, reflect.Array:
-					suffix = " items"
-				case reflect.String:
-					suffix = " characters"
-				}
-
-				operator := "at least"
-				if err.Tag() == "max" {
-					operator = "at most"
-				}
-				fields[fieldName] = fmt.Sprintf("%s must be %s %s%s", fieldName, operator, err.Param(), suffix)
-				insertedErr[fieldName] = struct{}{}
-			case "required_if":
-				targetField, targetValue, _ := strings.Cut(err.Param(), " ")
-				fields[fieldName] = fmt.Sprintf("%s is required if value of %s is %s", fieldName, targetField, targetValue)
-				insertedErr[fieldName] = struct{}{}
-			case "required_without":
-				fields[fieldName] = fmt.Sprintf("%s required if %s empty", fieldName, err.Param())
-				insertedErr[fieldName] = struct{}{}
-			case "uuid4":
-				fields[fieldName] = fmt.Sprintf("%s must be an uuid4", fieldName)
-				insertedErr[fieldName] = struct{}{}
-			default:
+			} else if config.IsEnvDev() {
 				fields[fieldName] = err.Error()
 			}
 		}
