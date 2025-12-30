@@ -52,6 +52,16 @@ func (s *ContextedRoleSetter) SetRole(payload payloads.RequestSetRole) (*models.
 		return nil, errorlib.MakeUserByTargetIDNotFound(err)
 	}
 
+	if user.Role != models.RoleUnsetted {
+		return nil, &reply.ErrorPayload{
+			Code:    replylib.CodeConflict,
+			Message: "targeted user's role already setted",
+			Fields: reply.FieldsError{
+				"target_id": "user's role with this id already setted",
+			},
+		}
+	}
+
 	switch payload.TargetRole {
 	// set role student
 	case models.RoleStudent:
