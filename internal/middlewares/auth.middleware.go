@@ -223,34 +223,27 @@ func (mw *Auth) PermissionProtected(resource models.PermissionResource, actions 
 			c.Abort()
 			return
 		}
-		if user.AdminProfile == nil || user.AdminProfile.Permissions == nil {
+		if user.AdminProfile == nil || len(user.AdminProfile.Permissions) == 0 {
 			rp.Error(replylib.CodeConflict, "your admin profile or permission not registered").FailJSON()
 			c.Abort()
 			return
 		}
 		c.Set("user", user)
 
-		// action tracks
-		requiredActions := make(map[models.PermissionAction]bool, len(actions))
-		for _, a := range actions {
-			requiredActions[a] = false
-		}
+		// user's action tracks
+		existingAction := make(map[models.PermissionAction]struct{}, len(actions))
 
-		// validate permissions
 		for _, perm := range user.AdminProfile.Permissions {
 			if perm.Resource == resource {
-				// set action to true if protected resource's action exists
 				for _, act := range perm.Actions {
-					if _, exists := requiredActions[act]; exists {
-						requiredActions[act] = true
-					}
+					existingAction[act] = struct{}{}
 				}
 			}
 		}
 
 		// validate is permitted
-		for action, found := range requiredActions {
-			if !found {
+		for _, action := range actions {
+			if _, ok := existingAction[action]; !ok {
 				rp.Error(replylib.CodeForbidden, fmt.Sprintf("missing permission: %s.%s", resource, action)).FailJSON()
 				c.Abort()
 				return
