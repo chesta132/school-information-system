@@ -169,7 +169,7 @@ func (h *Class) DeleteClass(c *gin.Context) {
 // @Param				 Cookie2  header 		string 	true	"refresh_token"
 // @Success      200  		{object}  swaglib.Envelope{data=models.User}
 // @Response     default  {object}  swaglib.Envelope{data=reply.ErrorPayload}
-// @Router       /classes/{id} [get]
+// @Router       /classes/{id}/form-teacher [get]
 func (h *Class) GetFormTeacher(c *gin.Context) {
 	rp := replylib.Client.Use(adapter.AdaptGin(c))
 	var payload payloads.RequestGetClass
@@ -191,6 +191,7 @@ func (h *Class) GetFormTeacher(c *gin.Context) {
 // @Produce      json
 // @Param				 Cookie   header 		string 	false	"access_token"
 // @Param				 Cookie2  header 		string 	true	"refresh_token"
+// @Param 			 id				path 			string  true  "class id"
 // @Success      200  		{object}  swaglib.Envelope{data=payloads.ResponseGetFullClass}
 // @Response     default  {object}  swaglib.Envelope{data=reply.ErrorPayload}
 // @Router       /classes/{id}/full [get]

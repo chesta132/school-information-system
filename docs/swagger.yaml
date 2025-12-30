@@ -23,11 +23,23 @@ definitions:
     type: object
   models.Class:
     properties:
+      class_number:
+        example: 3
+        type: integer
       created_at:
         example: 2006-01-02T15:04:05Z07:00
         type: string
+      form_teacher_id:
+        example: 479b5b5f-81b1-4669-91a5-b5bf69e597c6
+        type: string
+      grade:
+        example: 10
+        type: integer
       id:
         example: 479b5b5f-81b1-4669-91a5-b5bf69e597c6
+        type: string
+      major:
+        example: TJKT
         type: string
       name:
         example: 10 TJKT 3
@@ -155,6 +167,9 @@ definitions:
     type: object
   models.Teacher:
     properties:
+      NUPTK:
+        example: "1234567890123456"
+        type: string
       created_at:
         example: 2006-01-02T15:04:05Z07:00
         type: string
@@ -166,9 +181,6 @@ definitions:
         type: string
       joined_at:
         example: 2006-01-02T15:04:05Z07:00
-        type: string
-      nuptk:
-        example: "1234567890123456"
         type: string
       updated_at:
         example: 2006-01-02T15:04:05Z07:00
@@ -228,6 +240,29 @@ definitions:
     - RoleTeacher
     - RoleAdmin
     - RoleUnsetted
+  payloads.RequestCreateClass:
+    properties:
+      class_number:
+        example: 3
+        minimum: 1
+        type: integer
+      form_teacher_id:
+        example: 479b5b5f-81b1-4669-91a5-b5bf69e597c6
+        type: string
+      grade:
+        example: 10
+        maximum: 12
+        minimum: 1
+        type: integer
+      major:
+        example: TJKT
+        type: string
+    required:
+    - class_number
+    - form_teacher_id
+    - grade
+    - major
+    type: object
   payloads.RequestCreatePermission:
     properties:
       actions:
@@ -463,6 +498,17 @@ definitions:
     required:
     - id
     - name
+    type: object
+  payloads.ResponseGetFullClass:
+    properties:
+      class:
+        $ref: '#/definitions/models.Class'
+      form_teacher:
+        $ref: '#/definitions/models.User'
+      students:
+        items:
+          $ref: '#/definitions/models.User'
+        type: array
     type: object
   reply.ErrorPayload:
     properties:
@@ -773,6 +819,307 @@ paths:
       summary: Creates new account and sign in
       tags:
       - auth
+  /classes:
+    get:
+      consumes:
+      - application/json
+      description: Admin with permission read class resource or teacher only
+      parameters:
+      - description: access_token
+        in: header
+        name: Cookie
+        type: string
+      - description: refresh_token
+        in: header
+        name: Cookie2
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/swaglib.Envelope'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/models.Class'
+                  type: array
+              type: object
+        default:
+          description: ""
+          schema:
+            allOf:
+            - $ref: '#/definitions/swaglib.Envelope'
+            - properties:
+                data:
+                  $ref: '#/definitions/reply.ErrorPayload'
+              type: object
+      summary: Get existing classes
+      tags:
+      - class
+    post:
+      consumes:
+      - application/json
+      description: Admin with permission create class resource only
+      parameters:
+      - description: access_token
+        in: header
+        name: Cookie
+        type: string
+      - description: refresh_token
+        in: header
+        name: Cookie2
+        required: true
+        type: string
+      - description: data of new class
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/payloads.RequestCreateClass'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            allOf:
+            - $ref: '#/definitions/swaglib.Envelope'
+            - properties:
+                data:
+                  $ref: '#/definitions/models.Class'
+                meta:
+                  $ref: '#/definitions/swaglib.Info'
+              type: object
+        default:
+          description: ""
+          schema:
+            allOf:
+            - $ref: '#/definitions/swaglib.Envelope'
+            - properties:
+                data:
+                  $ref: '#/definitions/reply.ErrorPayload'
+              type: object
+      summary: Create new class
+      tags:
+      - class
+  /classes/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Admin with permission delete class resource only
+      parameters:
+      - description: access_token
+        in: header
+        name: Cookie
+        type: string
+      - description: refresh_token
+        in: header
+        name: Cookie2
+        required: true
+        type: string
+      - description: class id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/swaglib.Envelope'
+            - properties:
+                data:
+                  $ref: '#/definitions/models.Id'
+              type: object
+        default:
+          description: ""
+          schema:
+            allOf:
+            - $ref: '#/definitions/swaglib.Envelope'
+            - properties:
+                data:
+                  $ref: '#/definitions/reply.ErrorPayload'
+              type: object
+      summary: Delete class
+      tags:
+      - class
+    get:
+      consumes:
+      - application/json
+      description: Admin with permission read class resource or teacher only
+      parameters:
+      - description: access_token
+        in: header
+        name: Cookie
+        type: string
+      - description: refresh_token
+        in: header
+        name: Cookie2
+        required: true
+        type: string
+      - description: class id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/swaglib.Envelope'
+            - properties:
+                data:
+                  $ref: '#/definitions/models.Class'
+              type: object
+        default:
+          description: ""
+          schema:
+            allOf:
+            - $ref: '#/definitions/swaglib.Envelope'
+            - properties:
+                data:
+                  $ref: '#/definitions/reply.ErrorPayload'
+              type: object
+      summary: Get existing class with id
+      tags:
+      - class
+    put:
+      consumes:
+      - application/json
+      description: Admin with permission update class resource only
+      parameters:
+      - description: access_token
+        in: header
+        name: Cookie
+        type: string
+      - description: refresh_token
+        in: header
+        name: Cookie2
+        required: true
+        type: string
+      - description: class id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/swaglib.Envelope'
+            - properties:
+                data:
+                  $ref: '#/definitions/models.Class'
+              type: object
+        default:
+          description: ""
+          schema:
+            allOf:
+            - $ref: '#/definitions/swaglib.Envelope'
+            - properties:
+                data:
+                  $ref: '#/definitions/reply.ErrorPayload'
+              type: object
+      summary: Update class
+      tags:
+      - class
+  /classes/{id}/form-teacher:
+    get:
+      consumes:
+      - application/json
+      description: Admin with permission read class and teacher resource only
+      parameters:
+      - description: access_token
+        in: header
+        name: Cookie
+        type: string
+      - description: refresh_token
+        in: header
+        name: Cookie2
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/swaglib.Envelope'
+            - properties:
+                data:
+                  $ref: '#/definitions/models.User'
+              type: object
+        default:
+          description: ""
+          schema:
+            allOf:
+            - $ref: '#/definitions/swaglib.Envelope'
+            - properties:
+                data:
+                  $ref: '#/definitions/reply.ErrorPayload'
+              type: object
+      summary: Get form teacher of class
+      tags:
+      - class
+  /classes/{id}/full:
+    get:
+      consumes:
+      - application/json
+      description: Admin with permission read class, teacher, and student resource
+        only
+      parameters:
+      - description: access_token
+        in: header
+        name: Cookie
+        type: string
+      - description: refresh_token
+        in: header
+        name: Cookie2
+        required: true
+        type: string
+      - description: class id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/swaglib.Envelope'
+            - properties:
+                data:
+                  $ref: '#/definitions/payloads.ResponseGetFullClass'
+              type: object
+        default:
+          description: ""
+          schema:
+            allOf:
+            - $ref: '#/definitions/swaglib.Envelope'
+            - properties:
+                data:
+                  $ref: '#/definitions/reply.ErrorPayload'
+              type: object
+      summary: Get form teacher of class
+      tags:
+      - class
   /health:
     get:
       consumes:
