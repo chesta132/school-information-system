@@ -86,4 +86,12 @@ func (rt *Route) RegisterClass(group *gin.RouterGroup) {
 		models.ResourceStudent,
 		[]models.PermissionAction{models.ActionUpdate},
 	), handler.AddStudents)
+
+	group.DELETE("/:id/form-teacher", mw.PermissionProtected(
+		models.ResourceClass,
+		[]models.PermissionAction{models.ActionUpdate},
+	), mw.PermissionProtected(
+		models.ResourceTeacher,
+		[]models.PermissionAction{models.ActionUpdate},
+	), handler.RemoveFormTeacher)
 }

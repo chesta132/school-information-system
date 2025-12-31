@@ -192,3 +192,49 @@ func (s *ContextedClass) AddStudents(payload payloads.RequestAddStudents) (stude
 	})
 	return
 }
+
+func (s *ContextedClass) RemoveFormTeacher(payload payloads.RequestGetClass) (teacher *models.User, errPayload *reply.ErrorPayload) {
+	// validate payload
+	if errPayload := validatorlib.ValidateStructToReply(payload); errPayload != nil {
+		return nil, errPayload
+	}
+
+	s.classRepo.DB().Transaction(func(tx *gorm.DB) error {
+		classRepo := s.classRepo.WithTx(tx)
+
+		// get class with form teacher
+		class, err := classRepo.GetByID(s.ctx, payload.ID)
+		if err != nil {
+			errPayload = errorlib.MakeNotFound(err, "class not found", nil)
+			return err
+		}
+
+		// check if form teacher exists
+		if class.FormTeacherID == "" {
+			errPayload = &reply.ErrorPayload{
+				Code:    replylib.CodeNotFound,
+				Message: "this class doesn't have a form teacher",
+			}
+			return gorm.ErrRecordNotFound
+		}
+
+		// get teacher data before removing
+		teacher = new(models.User)
+		err = tx.Preload("TeacherProfile").
+			Joins("JOIN teachers ON teachers.user_id = users.id").
+			Where("teachers.id = ?", class.FormTeacherID).
+			First(teacher).Error
+		if err != nil {
+			errPayload = errorlib.MakeServerError(err)
+			return err
+		}
+
+		// remove form teacher (set to empty)
+		err = tx.Model(new(models.Class)).Where("id = ?", payload.ID).Update("form_teacher_id", nil).Error
+		if err != nil {
+			errPayload = errorlib.MakeServerError(err)
+		}
+		return err
+	})
+	return
+}
