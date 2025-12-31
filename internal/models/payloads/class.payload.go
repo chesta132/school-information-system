@@ -36,3 +36,8 @@ type ResponseGetFullClass struct {
 	Class       *models.Class `json:"class"`
 	Students    []models.User `json:"students"`
 }
+
+type RequestSetFormTeacher struct {
+	ID        string `uri:"id" validate:"required,uuid4"`
+	TeacherID string `json:"teacher_id" validate:"required,uuid4"`
+}
