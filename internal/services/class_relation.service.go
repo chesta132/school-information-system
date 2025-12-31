@@ -97,7 +97,7 @@ func (s *ContextedClass) SetFormTeacher(payload payloads.RequestSetFormTeacher) 
 			if class.ID == payload.ID {
 				classExist = true
 			}
-			if class.FormTeacherID == payload.TeacherID {
+			if class.FormTeacherID != nil && *class.FormTeacherID == payload.TeacherID {
 				errPayload = &reply.ErrorPayload{
 					Code:    replylib.CodeConflict,
 					Message: "teacher is a form teacher in " + class.GetName(),
@@ -128,7 +128,7 @@ func (s *ContextedClass) SetFormTeacher(payload payloads.RequestSetFormTeacher) 
 		}
 
 		// update form teacher
-		err = classRepo.UpdateByID(s.ctx, payload.ID, models.Class{FormTeacherID: payload.TeacherID})
+		err = classRepo.UpdateByID(s.ctx, payload.ID, models.Class{FormTeacherID: &payload.TeacherID})
 		if err != nil {
 			errPayload = errorlib.MakeServerError(err)
 		}
@@ -210,7 +210,7 @@ func (s *ContextedClass) RemoveFormTeacher(payload payloads.RequestGetClass) (te
 		}
 
 		// check if form teacher exists
-		if class.FormTeacherID == "" {
+		if class.FormTeacherID == nil {
 			errPayload = &reply.ErrorPayload{
 				Code:    replylib.CodeNotFound,
 				Message: "this class doesn't have a form teacher",

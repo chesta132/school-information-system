@@ -45,20 +45,6 @@ func (s *ContextedClass) CreateClass(payload payloads.RequestCreateClass) (class
 
 	s.classRepo.DB().Transaction(func(tx *gorm.DB) error {
 		classRepo := s.classRepo.WithTx(tx)
-		teacherRepo := s.teacherRepo.WithTx(tx)
-
-		// check is teacher exists
-		teacherExists, err := teacherRepo.Exists(s.ctx, "id = ?", payload.FormTeacherID)
-		if err != nil {
-			errPayload = errorlib.MakeServerError(err)
-			return err
-		}
-		if !teacherExists {
-			errPayload = errorlib.MakeNotFound(gorm.ErrRecordNotFound, "teacher not found", reply.FieldsError{
-				"form_teacher_id": "teacher with this id not found",
-			})
-			return gorm.ErrRecordNotFound
-		}
 
 		// check is name exists
 		classExists, err := classRepo.Exists(s.ctx,
@@ -88,7 +74,6 @@ func (s *ContextedClass) CreateClass(payload payloads.RequestCreateClass) (class
 			Grade:         payload.Grade,
 			Major:         payload.Major,
 			ClassNumber:   payload.ClassNumber,
-			FormTeacherID: payload.FormTeacherID,
 		}
 		class.GetName()
 
