@@ -2,7 +2,7 @@ package models
 
 type Subject struct {
 	Id
-	Name string `json:"name" example:"informatika"`
+	Name string `gorm:"unique;not null" json:"name" example:"informatika"`
 
 	Timestamp
 }

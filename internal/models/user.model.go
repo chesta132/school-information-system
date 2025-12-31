@@ -2,12 +2,12 @@ package models
 
 type User struct {
 	Id
-	FullName string     `json:"full_name" example:"Chesta Ardiona"`
-	Email    string     `gorm:"uniqueIndex" json:"email" example:"chestaardi4@gmail.com"` // auth username
-	Password string     `json:"-"`                                                        // auth password
-	Role     UserRole   `gorm:"type:user_role;default:unsetted" json:"role"`              // "student", "teacher", "admin", "unsetted"
-	Gender   UserGender `gorm:"type:user_gender" json:"gender"`                           // "male", "female"
-	Phone    string     `gorm:"uniqueIndex" json:"phone" example:"+6281234567890"`        // phone number
+	FullName string     `json:"full_name" gorm:"not null" example:"Chesta Ardiona"`
+	Email    string     `gorm:"uniqueIndex;not null" json:"email" example:"chestaardi4@gmail.com"` // auth username
+	Password string     `gorm:"not null" json:"-"`                                                 // auth password
+	Role     UserRole   `gorm:"type:user_role;default:unsetted;not null" json:"role"`              // "student", "teacher", "admin", "unsetted"
+	Gender   UserGender `gorm:"type:user_gender;not null" json:"gender"`                           // "male", "female"
+	Phone    string     `gorm:"uniqueIndex;not null" json:"phone" example:"+6281234567890"`        // phone number
 
 	// empty if user's role not student
 	StudentProfile *Student `gorm:"foreignKey:UserID;constraint:OnDelete:CASCADE" json:"student_profile,omitempty" swaggerignore:"true"`
@@ -21,7 +21,7 @@ type User struct {
 
 type Student struct {
 	Id
-	ClassID string    `json:"-"`
+	ClassID string    `json:"-" gorm:"not null"`
 	Class   *Class    `json:"class,omitempty" swaggerignore:"true"`
 	Parents []*Parent `gorm:"many2many:student_parents" json:"parents,omitempty" swaggerignore:"true"`
 	NISN    string    `gorm:"unique;not null" example:"0091913711"`
@@ -44,7 +44,7 @@ type Teacher struct {
 
 type Admin struct {
 	Id
-	StaffRole   string        `json:"staff_role" example:"developer"`
+	StaffRole   string        `gorm:"not null" json:"staff_role" example:"developer"`
 	Permissions []*Permission `gorm:"many2many:admin_permissions" json:"permissions,omitempty" swaggerignore:"true"`
 	EmployeeID  string        `gorm:"not null" json:"employee_id" example:"DEV001"`
 
@@ -55,10 +55,10 @@ type Admin struct {
 
 type Parent struct {
 	Id
-	FullName string     `json:"full_name" example:"Chesta Ardiona"`
-	Phone    string     `gorm:"unique" json:"phone" example:"+6281234567890"` // phone number
-	Email    string     `gorm:"unique" json:"email" example:"chestaardi4@gmail.com"`
-	Gender   UserGender `gorm:"type:user_gender" json:"gender"` // "male", "female"
+	FullName string     `gorm:"not null" json:"full_name" example:"Chesta Ardiona"`
+	Phone    string     `gorm:"unique;not null" json:"phone" example:"+6281234567890"` // phone number
+	Email    string     `gorm:"unique;not null" json:"email" example:"chestaardi4@gmail.com"`
+	Gender   UserGender `gorm:"type:user_gender;not null" json:"gender"` // "male", "female"
 
 	Timestamp
 }

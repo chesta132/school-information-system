@@ -11,18 +11,18 @@ type Id struct {
 }
 
 type Timestamp struct {
-	CreatedAt time.Time `gorm:"autoCreateTime" json:"created_at,omitzero" example:"2006-01-02T15:04:05Z07:00"`
-	UpdatedAt time.Time `gorm:"autoUpdateTime" json:"updated_at,omitzero" example:"2006-01-02T15:04:05Z07:00"`
+	CreatedAt time.Time `gorm:"autoCreateTime;not null" json:"created_at,omitzero" example:"2006-01-02T15:04:05Z07:00"`
+	UpdatedAt time.Time `gorm:"autoUpdateTime;not null" json:"updated_at,omitzero" example:"2006-01-02T15:04:05Z07:00"`
 }
 
 type TimestampJoinTime struct {
 	JoinedAt  time.Time `gorm:"not null" json:"joined_at,omitzero" example:"2006-01-02T15:04:05Z07:00"`
-	CreatedAt time.Time `gorm:"autoCreateTime" json:"created_at,omitzero" example:"2006-01-02T15:04:05Z07:00"`
-	UpdatedAt time.Time `gorm:"autoUpdateTime" json:"updated_at,omitzero" example:"2006-01-02T15:04:05Z07:00"`
+	CreatedAt time.Time `gorm:"autoCreateTime;not null" json:"created_at,omitzero" example:"2006-01-02T15:04:05Z07:00"`
+	UpdatedAt time.Time `gorm:"autoUpdateTime;not null" json:"updated_at,omitzero" example:"2006-01-02T15:04:05Z07:00"`
 }
 
 type TimestampArchivable struct {
 	DeletedAt gorm.DeletedAt `gorm:"index" json:"archived_at,omitzero" swaggertype:"string" example:"2006-01-02T15:04:05Z07:00"`
-	CreatedAt time.Time      `gorm:"autoCreateTime" json:"created_at,omitzero" example:"2006-01-02T15:04:05Z07:00"`
-	UpdatedAt time.Time      `gorm:"autoUpdateTime" json:"updated_at,omitzero" example:"2006-01-02T15:04:05Z07:00"`
+	CreatedAt time.Time      `gorm:"autoCreateTime;not null" json:"created_at,omitzero" example:"2006-01-02T15:04:05Z07:00"`
+	UpdatedAt time.Time      `gorm:"autoUpdateTime;not null" json:"updated_at,omitzero" example:"2006-01-02T15:04:05Z07:00"`
 }
