@@ -41,3 +41,8 @@ type RequestSetFormTeacher struct {
 	ID        string `uri:"id" validate:"required,uuid4"`
 	TeacherID string `json:"teacher_id" validate:"required,uuid4"`
 }
+
+type RequestAddStudents struct {
+	ID         string   `uri:"id" validate:"required,uuid4"`
+	StudentIDs []string `json:"student_ids" validate:"required,min=1,dive,uuid4"`
+}

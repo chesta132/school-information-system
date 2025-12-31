@@ -1,8 +1,10 @@
 package services
 
 import (
+	"fmt"
 	"school-information-system/internal/libs/errorlib"
 	"school-information-system/internal/libs/replylib"
+	"school-information-system/internal/libs/slicelib"
 	"school-information-system/internal/libs/validatorlib"
 	"school-information-system/internal/models"
 	"school-information-system/internal/models/payloads"
@@ -134,7 +136,9 @@ func (s *ContextedClass) SetFormTeacher(payload payloads.RequestSetFormTeacher) 
 
 		// get user with teacher profile and validate is teacher exists
 		err = tx.Preload("TeacherProfile").
-			Joins("JOIN teachers ON teachers.id = ?", payload.TeacherID).First(teacher).Error
+			Joins("JOIN teachers ON teachers.id = users.id").
+			Where("teachers.id = ?", payload.TeacherID).
+			First(teacher).Error
 		if err != nil {
 			errPayload = errorlib.MakeNotFound(err, "teacher not found", reply.FieldsError{
 				"teacher_id": "teacher with this id not found",
@@ -148,6 +152,61 @@ func (s *ContextedClass) SetFormTeacher(payload payloads.RequestSetFormTeacher) 
 			errPayload = errorlib.MakeServerError(err)
 		}
 
+		return err
+	})
+	return
+}
+
+func (s *ContextedClass) AddStudents(payload payloads.RequestAddStudents) (students []models.User, errPayload *reply.ErrorPayload) {
+	// validate payload
+	if errPayload := validatorlib.ValidateStructToReply(payload); errPayload != nil {
+		return nil, errPayload
+	}
+
+	s.classRepo.DB().Transaction(func(tx *gorm.DB) error {
+		classRepo := s.classRepo.WithTx(tx)
+		studentRepo := s.studentRepo.WithTx(tx)
+
+		// validate class id
+		classExists, err := classRepo.Exists(s.ctx, "id = ?", payload.ID)
+		if err != nil {
+			errPayload = errorlib.MakeServerError(err)
+			return err
+		}
+		if !classExists {
+			errPayload = errorlib.MakeNotFound(gorm.ErrRecordNotFound, "class not found", nil)
+			return gorm.ErrRecordNotFound
+		}
+
+		// removes duplicate ids
+		payload.StudentIDs = slicelib.Unique(payload.StudentIDs)
+
+		// get students and validate length
+		err = tx.Preload("StudentProfile").
+			Joins("JOIN students ON students.user_id = users.id").
+			Where("students.id IN ?", payload.StudentIDs).
+			Find(&students).Error
+		if err != nil {
+			errPayload = errorlib.MakeServerError(err)
+			return err
+		}
+		notFound := len(payload.StudentIDs) - len(students)
+		if notFound > 0 {
+			errPayload = &reply.ErrorPayload{
+				Code:    replylib.CodeNotFound,
+				Message: "student(s) not found",
+				Fields: reply.FieldsError{
+					"student_ids": fmt.Sprintf("%d student(s) with these id not found", notFound),
+				},
+			}
+			return gorm.ErrRecordNotFound
+		}
+
+		// update student's class_id column
+		err = studentRepo.Update(s.ctx, models.Student{ClassID: payload.ID}, "id IN ?", payload.StudentIDs)
+		if err != nil {
+			errPayload = errorlib.MakeServerError(err)
+		}
 		return err
 	})
 	return

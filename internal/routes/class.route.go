@@ -78,4 +78,12 @@ func (rt *Route) RegisterClass(group *gin.RouterGroup) {
 		models.ResourceTeacher,
 		[]models.PermissionAction{models.ActionUpdate},
 	), handler.SetFormTeacher)
+
+	group.POST("/:id/students", mw.PermissionProtected(
+		models.ResourceClass,
+		[]models.PermissionAction{models.ActionUpdate},
+	), mw.PermissionProtected(
+		models.ResourceStudent,
+		[]models.PermissionAction{models.ActionUpdate},
+	), handler.AddStudents)
 }

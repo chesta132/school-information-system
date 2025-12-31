@@ -235,7 +235,7 @@ func (h *Class) GetFull(c *gin.Context) {
 	rp.Success(full).OkJSON()
 }
 
-// @Summary      set form teacher of class
+// @Summary      Set form teacher of class
 // @Description  Admin with permission update class and teacher resource only
 // @Tags         class
 // @Accept       json
@@ -262,4 +262,33 @@ func (h *Class) SetFormTeacher(c *gin.Context) {
 	}
 
 	rp.Success(teacher).OkJSON()
+}
+
+// @Summary      Add students in class
+// @Description  Admin with permission update class and student resource only
+// @Tags         class
+// @Accept       json
+// @Produce      json
+// @Param				 Cookie   header 		string 	false	"access_token"
+// @Param				 Cookie2  header 		string 	true	"refresh_token"
+// @Param 			 id				path 			string  true  "class id"
+// @Success      200  		{object}  swaglib.Envelope{data=[]models.User}
+// @Response     default  {object}  swaglib.Envelope{data=reply.ErrorPayload}
+// @Router       /classes/{id}/students [post]
+func (h *Class) AddStudents(c *gin.Context) {
+	rp := replylib.Client.Use(adapter.AdaptGin(c))
+	var payload payloads.RequestAddStudents
+	if err := c.ShouldBindJSON(&payload); err != nil {
+		rp.Error(replylib.CodeBadRequest, err.Error()).FailJSON()
+		return
+	}
+	c.ShouldBindUri(&payload)
+
+	students, errPayload := h.classService.ApplyContext(c).AddStudents(payload)
+	if errPayload != nil {
+		rp.Error(replylib.ErrorPayloadToArgs(errPayload)).FailJSON()
+		return
+	}
+
+	rp.Success(students).OkJSON()
 }

@@ -23,7 +23,7 @@ type Student struct {
 	Id
 	ClassID string    `json:"-"`
 	Class   *Class    `json:"class,omitempty" swaggerignore:"true"`
-	Parents []*Parent `gorm:"many2many:student_parents" json:"parents" swaggerignore:"true"`
+	Parents []*Parent `gorm:"many2many:student_parents" json:"parents,omitempty" swaggerignore:"true"`
 	NISN    string    `gorm:"unique;not null" example:"0091913711"`
 
 	UserID string `gorm:"uniqueIndex;not null" json:"-"`
