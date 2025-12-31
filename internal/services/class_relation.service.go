@@ -59,10 +59,12 @@ func (s *ContextedClass) GetFull(payload payloads.RequestGetClass) (full *payloa
 
 	// get form teacher
 	teacher, err := s.classRepo.GetFormTeacher(s.ctx, payload.ID)
-	if err != nil {
-		return nil, errorlib.MakeNotFound(err, "form teacher not found", nil)
+	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+		return nil, errorlib.MakeServerError(err)
 	}
+	if err == nil {
 	full.FormTeacher = &teacher
+	}
 
 	// get students
 	students, err := s.classRepo.GetStudents(s.ctx, payload.ID)
