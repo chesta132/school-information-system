@@ -1,6 +1,7 @@
 package services
 
 import (
+	"errors"
 	"fmt"
 	"school-information-system/internal/libs/errorlib"
 	"school-information-system/internal/libs/replylib"
@@ -19,9 +20,17 @@ func (s *ContextedClass) GetFormTeacher(payload payloads.RequestGetClass) (*mode
 		return nil, errPayload
 	}
 
+	exists, err := s.classRepo.Exists(s.ctx, "id = ?", payload.ID)
+	if err != nil {
+		return nil, errorlib.MakeServerError(err)
+	}
+	if !exists {
+		return nil, errorlib.MakeNotFound(gorm.ErrRecordNotFound, "class not found", nil)
+	}
+
 	teacher, err := s.classRepo.GetFormTeacher(s.ctx, payload.ID)
 	if err != nil {
-		return nil, errorlib.MakeNotFound(err, "class not found", nil)
+		return nil, errorlib.MakeNotFound(err, "this class don't have form teacher", nil)
 	}
 
 	return &teacher, nil
@@ -63,7 +72,7 @@ func (s *ContextedClass) GetFull(payload payloads.RequestGetClass) (full *payloa
 		return nil, errorlib.MakeServerError(err)
 	}
 	if err == nil {
-	full.FormTeacher = &teacher
+		full.FormTeacher = &teacher
 	}
 
 	// get students
