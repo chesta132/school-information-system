@@ -13,32 +13,13 @@ import (
 	"gorm.io/gorm"
 )
 
-func (s *ContextedClass) getFormTeacher(classID string) (models.User, error) {
-	var user models.User
-	err := s.userRepo.DB().Preload("TeacherProfile").
-		Joins("JOIN teachers ON teachers.user_id = users.id").
-		Joins("JOIN classes ON classes.form_teacher_id = teachers.id").
-		Where("classes.id = ?", classID).
-		First(&user).Error
-	return user, err
-}
-
-func (s *ContextedClass) getStudents(classID string) ([]models.User, error) {
-	var students []models.User
-	err := s.userRepo.DB().Preload("StudentProfile").
-		Joins("JOIN students ON students.user_id = users.id").
-		Where("students.class_id = ?", classID).
-		Find(&students).Error
-	return students, err
-}
-
 func (s *ContextedClass) GetFormTeacher(payload payloads.RequestGetClass) (*models.User, *reply.ErrorPayload) {
 	// validate payload
 	if errPayload := validatorlib.ValidateStructToReply(payload); errPayload != nil {
 		return nil, errPayload
 	}
 
-	teacher, err := s.getFormTeacher(payload.ID)
+	teacher, err := s.classRepo.GetFormTeacher(s.ctx, payload.ID)
 	if err != nil {
 		return nil, errorlib.MakeNotFound(err, "class not found", nil)
 	}
@@ -52,7 +33,7 @@ func (s *ContextedClass) GetStudents(payload payloads.RequestGetClass) ([]models
 		return nil, errPayload
 	}
 
-	students, err := s.getStudents(payload.ID)
+	students, err := s.classRepo.GetStudents(s.ctx, payload.ID)
 	if err != nil {
 		return nil, errorlib.MakeServerError(err)
 	}
@@ -77,14 +58,14 @@ func (s *ContextedClass) GetFull(payload payloads.RequestGetClass) (full *payloa
 	full.Class = &class
 
 	// get form teacher
-	teacher, err := s.getFormTeacher(payload.ID)
+	teacher, err := s.classRepo.GetFormTeacher(s.ctx, payload.ID)
 	if err != nil {
 		return nil, errorlib.MakeNotFound(err, "form teacher not found", nil)
 	}
 	full.FormTeacher = &teacher
 
 	// get students
-	students, err := s.getStudents(payload.ID)
+	students, err := s.classRepo.GetStudents(s.ctx, payload.ID)
 	if err != nil {
 		return nil, errorlib.MakeServerError(err)
 	}
