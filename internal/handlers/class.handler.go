@@ -160,13 +160,14 @@ func (h *Class) DeleteClass(c *gin.Context) {
 // ------------------------------------ //
 // ------------------------------------ //
 
-// @Summary      Get form teacher of class
+// @Summary      Get form teacher in class
 // @Description  Admin with permission read class and teacher resource only
 // @Tags         class
 // @Accept       json
 // @Produce      json
 // @Param				 Cookie   header 		string 	false	"access_token"
 // @Param				 Cookie2  header 		string 	true	"refresh_token"
+// @Param 			 id				path 			string  true  "class id"
 // @Success      200  		{object}  swaglib.Envelope{data=models.User}
 // @Response     default  {object}  swaglib.Envelope{data=reply.ErrorPayload}
 // @Router       /classes/{id}/form-teacher [get]
@@ -175,13 +176,38 @@ func (h *Class) GetFormTeacher(c *gin.Context) {
 	var payload payloads.RequestGetClass
 	c.ShouldBindUri(&payload)
 
-	user, errPayload := h.classService.ApplyContext(c).GetFormTeacher(payload)
+	teacher, errPayload := h.classService.ApplyContext(c).GetFormTeacher(payload)
 	if errPayload != nil {
 		rp.Error(replylib.ErrorPayloadToArgs(errPayload)).FailJSON()
 		return
 	}
 
-	rp.Success(user).OkJSON()
+	rp.Success(teacher).OkJSON()
+}
+
+// @Summary      Get students in class
+// @Description  Admin with permission read class and student resource only
+// @Tags         class
+// @Accept       json
+// @Produce      json
+// @Param				 Cookie   header 		string 	false	"access_token"
+// @Param				 Cookie2  header 		string 	true	"refresh_token"
+// @Param 			 id				path 			string  true  "class id"
+// @Success      200  		{object}  swaglib.Envelope{data=[]models.User}
+// @Response     default  {object}  swaglib.Envelope{data=reply.ErrorPayload}
+// @Router       /classes/{id}/students [get]
+func (h *Class) GetStudents(c *gin.Context) {
+	rp := replylib.Client.Use(adapter.AdaptGin(c))
+	var payload payloads.RequestGetClass
+	c.ShouldBindUri(&payload)
+
+	students, errPayload := h.classService.ApplyContext(c).GetStudents(payload)
+	if errPayload != nil {
+		rp.Error(replylib.ErrorPayloadToArgs(errPayload)).FailJSON()
+		return
+	}
+
+	rp.Success(students).OkJSON()
 }
 
 // @Summary      Get form teacher of class

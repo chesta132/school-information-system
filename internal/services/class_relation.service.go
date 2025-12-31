@@ -9,14 +9,23 @@ import (
 	"github.com/chesta132/goreply/reply"
 )
 
-func (s *ContextedClass) getFormTeacher(id string) (models.User, error) {
+func (s *ContextedClass) getFormTeacher(classID string) (models.User, error) {
 	var user models.User
 	err := s.userRepo.DB().Preload("TeacherProfile").
 		Joins("JOIN teachers ON teachers.user_id = users.id").
 		Joins("JOIN classes ON classes.form_teacher_id = teachers.id").
-		Where("classes.id = ?", id).
+		Where("classes.id = ?", classID).
 		First(&user).Error
 	return user, err
+}
+
+func (s *ContextedClass) getStudents(classID string) ([]models.User, error) {
+	var students []models.User
+	err := s.userRepo.DB().Preload("StudentProfile").
+		Joins("JOIN students ON students.user_id = users.id").
+		Where("students.class_id = ?", classID).
+		Find(&students).Error
+	return students, err
 }
 
 func (s *ContextedClass) GetFormTeacher(payload payloads.RequestGetClass) (*models.User, *reply.ErrorPayload) {
@@ -25,12 +34,26 @@ func (s *ContextedClass) GetFormTeacher(payload payloads.RequestGetClass) (*mode
 		return nil, errPayload
 	}
 
-	user, err := s.getFormTeacher(payload.ID)
+	teacher, err := s.getFormTeacher(payload.ID)
 	if err != nil {
 		return nil, errorlib.MakeNotFound(err, "class not found", nil)
 	}
 
-	return &user, nil
+	return &teacher, nil
+}
+
+func (s *ContextedClass) GetStudents(payload payloads.RequestGetClass) ([]models.User, *reply.ErrorPayload) {
+	// validate payload
+	if errPayload := validatorlib.ValidateStructToReply(payload); errPayload != nil {
+		return nil, errPayload
+	}
+
+	students, err := s.getStudents(payload.ID)
+	if err != nil {
+		return nil, errorlib.MakeServerError(err)
+	}
+
+	return students, nil
 }
 
 func (s *ContextedClass) GetFull(payload payloads.RequestGetClass) (full *payloads.ResponseGetFullClass, errPayload *reply.ErrorPayload) {
@@ -57,11 +80,7 @@ func (s *ContextedClass) GetFull(payload payloads.RequestGetClass) (full *payloa
 	full.FormTeacher = &teacher
 
 	// get students
-	var students []models.User
-	err = s.userRepo.DB().Preload("StudentProfile").
-		Joins("JOIN students ON students.user_id = users.id").
-		Where("students.class_id = ?", payload.ID).
-		Find(&students).Error
+	students, err := s.getStudents(payload.ID)
 	if err != nil {
 		return nil, errorlib.MakeServerError(err)
 	}
