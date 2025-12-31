@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"school-information-system/internal/libs/errorlib"
 	"school-information-system/internal/libs/replylib"
+	"school-information-system/internal/libs/slicelib"
 	"school-information-system/internal/libs/validatorlib"
 	"school-information-system/internal/models"
 	"school-information-system/internal/models/payloads"
@@ -84,9 +85,15 @@ func (s *ContextedRoleSetter) SetRole(payload payloads.RequestSetRole) (*models.
 }
 
 func (s *ContextedRoleSetter) setRoleStudent(payload payloads.RequestSetRoleStudent, user *models.User) (errPayload *reply.ErrorPayload) {
-	// validate payload
-	if errPayload := validatorlib.ValidateStructToReply(payload); errPayload != nil {
-		return errPayload
+	payload.ParentIDs = slicelib.Unique(payload.ParentIDs)
+	if len(payload.ParentIDs) != 2 {
+		return &reply.ErrorPayload{
+			Code:    replylib.CodeBadRequest,
+			Message: "invalid payload",
+			Fields: reply.FieldsError{
+				"student_data.parent_ids": "id is not unique",
+			},
+		}
 	}
 
 	// transaction to rollback if error
@@ -118,8 +125,8 @@ func (s *ContextedRoleSetter) setRoleStudent(payload payloads.RequestSetRoleStud
 			return err
 		}
 		if len(parents) != 2 {
-			errPayload = &reply.ErrorPayload{Code: replylib.CodeConflict, Message: "existing parents must be 2"}
-			return errors.New("found parent is not 2")
+			errPayload = &reply.ErrorPayload{Code: replylib.CodeNotFound, Message: "parent(s) not found"}
+			return gorm.ErrRecordNotFound
 		}
 
 		// set role
@@ -154,10 +161,7 @@ func (s *ContextedRoleSetter) setRoleStudent(payload payloads.RequestSetRoleStud
 }
 
 func (s *ContextedRoleSetter) setRoleTeacher(payload payloads.RequestSetRoleTeacher, user *models.User) (errPayload *reply.ErrorPayload) {
-	// validate payload
-	if errPayload := validatorlib.ValidateStructToReply(payload); errPayload != nil {
-		return errPayload
-	}
+	payload.SubjectIDs = slicelib.Unique(payload.SubjectIDs)
 
 	// transaction to rollback if error
 	s.adminRepo.DB().Transaction(func(tx *gorm.DB) error {
@@ -233,11 +237,6 @@ func (s *ContextedRoleSetter) setRoleTeacher(payload payloads.RequestSetRoleTeac
 }
 
 func (s *ContextedRoleSetter) setRoleAdmin(payload payloads.RequestSetRoleAdmin, user *models.User) (errPayload *reply.ErrorPayload) {
-	// validate payload
-	if errPayload := validatorlib.ValidateStructToReply(payload); errPayload != nil {
-		return errPayload
-	}
-
 	// transaction to rollback if error
 	s.adminRepo.DB().Transaction(func(tx *gorm.DB) error {
 		userRepo := s.userRepo.WithTx(tx)
