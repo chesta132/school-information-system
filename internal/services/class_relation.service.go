@@ -136,7 +136,7 @@ func (s *ContextedClass) SetFormTeacher(payload payloads.RequestSetFormTeacher) 
 
 		// get user with teacher profile and validate is teacher exists
 		err = tx.Preload("TeacherProfile").
-			Joins("JOIN teachers ON teachers.id = users.id").
+			Joins("JOIN teachers ON teachers.user_id = users.id").
 			Where("teachers.id = ?", payload.TeacherID).
 			First(teacher).Error
 		if err != nil {
