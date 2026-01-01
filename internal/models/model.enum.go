@@ -38,7 +38,7 @@ var PermissionActions = []PermissionAction{
 	ActionDelete,
 }
 
-type PermissionResource string // "role", "permission", "admin", "teacher", "student", "subject", "class"
+type PermissionResource string // "role", "permission", "admin", "teacher", "student", "parent", "subject", "class"
 const (
 	ResourceRole       PermissionResource = "role"
 	ResourcePermission PermissionResource = "permission"
@@ -46,6 +46,7 @@ const (
 	ResourceAdmin   PermissionResource = "admin"
 	ResourceTeacher PermissionResource = "teacher"
 	ResourceStudent PermissionResource = "student"
+	ResourceParent  PermissionResource = "parent"
 
 	ResourceSubject PermissionResource = "subject"
 	ResourceClass   PermissionResource = "class"

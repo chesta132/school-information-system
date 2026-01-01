@@ -31,6 +31,7 @@ func Migrate(db *gorm.DB) {
 		string(models.ResourceAdmin),
 		string(models.ResourceTeacher),
 		string(models.ResourceStudent),
+		string(models.ResourceParent),
 
 		string(models.ResourceSubject),
 		string(models.ResourceClass),

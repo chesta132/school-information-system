@@ -14,6 +14,7 @@ const (
 	PermAdminName   = "admin full manage"
 	PermTeacherName = "teacher full manage"
 	PermStudentName = "student full manage"
+	PermParentName  = "parent full manage"
 
 	PermSubjectName = "subject full manage"
 	PermClassName   = "class full manage"
@@ -62,6 +63,12 @@ var PermissionSeeds = []models.Permission{
 		Name:        PermClassName,
 		Resource:    models.ResourceClass,
 		Description: "Full access to manage class",
+		Actions:     []models.PermissionAction{models.ActionCreate, models.ActionRead, models.ActionUpdate, models.ActionDelete},
+	},
+	{
+		Name:        PermParentName,
+		Resource:    models.ResourceParent,
+		Description: "Full access to manage parents",
 		Actions:     []models.PermissionAction{models.ActionCreate, models.ActionRead, models.ActionUpdate, models.ActionDelete},
 	},
 }
