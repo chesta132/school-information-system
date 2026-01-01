@@ -8,3 +8,7 @@ type RequestCreateParent struct {
 	Email    string            `json:"email" validate:"required,email" example:"chestaardi4@gmail.com"`
 	Gender   models.UserGender `json:"gender" validate:"required,user_gender"`
 }
+
+type RequestGetParent struct {
+	ID string `uri:"id" validate:"required,uuid4"`
+}

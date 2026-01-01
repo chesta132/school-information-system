@@ -36,11 +36,36 @@ func (h *Parent) CreateParent(c *gin.Context) {
 		return
 	}
 
-	perm, errPayload := h.parentService.ApplyContext(c).CreateParent(payload)
+	parent, errPayload := h.parentService.ApplyContext(c).CreateParent(payload)
 	if errPayload != nil {
 		rp.Error(replylib.ErrorPayloadToArgs(errPayload)).FailJSON()
 		return
 	}
 
-	rp.Success(perm).Info("new parent profile created").CreatedJSON()
+	rp.Success(parent).Info("new parent profile created").CreatedJSON()
+}
+
+// @Summary      Get existing parent with id
+// @Description  Admin with permission read parent resource only
+// @Tags         parent
+// @Accept       json
+// @Produce      json
+// @Param				 Cookie   header 		string 	false	"access_token"
+// @Param				 Cookie2  header 		string 	true	"refresh_token"
+// @Param 			 id				path 			string  true  "parent id"
+// @Success      200  		{object}  swaglib.Envelope{data=models.Parent}
+// @Response     default  {object}  swaglib.Envelope{data=reply.ErrorPayload}
+// @Router       /parents/{id} [get]
+func (h *Parent) GetParent(c *gin.Context) {
+	rp := replylib.Client.Use(adapter.AdaptGin(c))
+	var payload payloads.RequestGetParent
+	c.ShouldBindUri(&payload)
+
+	parent, errPayload := h.parentService.ApplyContext(c).GetParent(payload)
+	if errPayload != nil {
+		rp.Error(replylib.ErrorPayloadToArgs(errPayload)).FailJSON()
+		return
+	}
+
+	rp.Success(parent).OkJSON()
 }

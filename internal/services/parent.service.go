@@ -76,3 +76,17 @@ func (s *ContextedParent) CreateParent(payload payloads.RequestCreateParent) (*m
 
 	return parent, nil
 }
+
+func (s *ContextedParent) GetParent(payload payloads.RequestGetParent) (*models.Parent, *reply.ErrorPayload) {
+	// validate payload
+	if errPayload := validatorlib.ValidateStructToReply(payload); errPayload != nil {
+		return nil, errPayload
+	}
+
+	parent, err := s.parentRepo.GetByID(s.ctx, payload.ID)
+	if err != nil {
+		return nil, errorlib.MakeNotFound(err, "parent not found", nil)
+	}
+
+	return &parent, nil
+}

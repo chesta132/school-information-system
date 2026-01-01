@@ -20,4 +20,9 @@ func (rt *Route) RegisterParent(group *gin.RouterGroup) {
 		models.ResourceParent,
 		[]models.PermissionAction{models.ActionCreate},
 	), handler.CreateParent)
+
+	group.GET("/:id", mw.PermissionProtected(
+		models.ResourceParent,
+		[]models.PermissionAction{models.ActionRead},
+	), handler.GetParent)
 }
