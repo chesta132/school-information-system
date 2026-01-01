@@ -21,6 +21,7 @@ import (
 
 type Parent struct {
 	parentRepo *repos.Parent
+	userRepo   *repos.User
 }
 
 type ContextedParent struct {
@@ -29,8 +30,8 @@ type ContextedParent struct {
 	ctx context.Context
 }
 
-func NewParent(parentRepo *repos.Parent) *Parent {
-	return &Parent{parentRepo}
+func NewParent(parentRepo *repos.Parent, userRepo *repos.User) *Parent {
+	return &Parent{parentRepo, userRepo}
 }
 
 func (s *Parent) ApplyContext(c *gin.Context) *ContextedParent {
@@ -210,4 +211,29 @@ func (s *ContextedParent) DeleteParent(payload payloads.RequestDeleteParent) (er
 	})
 
 	return
+}
+
+func (s *ContextedParent) GetStudentsOfParent(payload payloads.RequestGetStudentsOfParent) ([]models.User, *reply.ErrorPayload) {
+	// validate payload
+	if errPayload := validatorlib.ValidateStructToReply(payload); errPayload != nil {
+		return nil, errPayload
+	}
+
+	// validate resource
+	parentExists, err := s.parentRepo.Exists(s.ctx, "id = ?", payload.ParentID)
+	if err != nil {
+		return nil, errorlib.MakeServerError(err)
+	}
+	if !parentExists {
+		return nil, errorlib.MakeNotFound(gorm.ErrRecordNotFound, "parent not found", nil)
+	}
+
+	// get student profiles
+	students, err := s.parentRepo.GetStudents(s.ctx, payload.ParentID)
+
+	if err != nil {
+		return nil, errorlib.MakeServerError(err)
+	}
+
+	return students, nil
 }

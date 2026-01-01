@@ -10,7 +10,7 @@ import (
 )
 
 func (rt *Route) RegisterParent(group *gin.RouterGroup) {
-	parentService := services.NewParent(rt.rp.Parent())
+	parentService := services.NewParent(rt.rp.Parent(), rt.rp.User())
 
 	handler := handlers.NewParent(parentService)
 
@@ -39,4 +39,12 @@ func (rt *Route) RegisterParent(group *gin.RouterGroup) {
 		models.ResourceParent,
 		[]models.PermissionAction{models.ActionDelete},
 	), handler.DeleteParent)
+
+	group.GET("/:id/students", mw.PermissionProtected(
+		models.ResourceParent,
+		[]models.PermissionAction{models.ActionRead},
+	),mw.PermissionProtected(
+		models.ResourceStudent,
+		[]models.PermissionAction{models.ActionRead},
+	), handler.GetStudentsOfParent)
 }

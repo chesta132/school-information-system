@@ -145,10 +145,7 @@ func (h *Parent) UpdateParent(c *gin.Context) {
 func (h *Parent) DeleteParent(c *gin.Context) {
 	rp := replylib.Client.Use(adapter.AdaptGin(c))
 	var payload payloads.RequestDeleteParent
-	if err := c.ShouldBindUri(&payload); err != nil {
-		rp.Error(replylib.CodeBadRequest, err.Error()).FailJSON()
-		return
-	}
+	c.ShouldBindUri(&payload)
 
 	errPayload := h.parentService.ApplyContext(c).DeleteParent(payload)
 	if errPayload != nil {
@@ -157,4 +154,29 @@ func (h *Parent) DeleteParent(c *gin.Context) {
 	}
 
 	rp.Success(models.Id{ID: payload.ID}).OkJSON()
+}
+
+// @Summary      Get students of parent with parent id
+// @Description  Admin with permission read parent and student resource only
+// @Tags         parent
+// @Accept       json
+// @Produce      json
+// @Param				 Cookie   header 		string 	false	"access_token"
+// @Param				 Cookie2  header 		string 	true	"refresh_token"
+// @Param 			 id				path 			string  true  "parent id"
+// @Success      200  		{object}  swaglib.Envelope{data=[]models.User{student_profile=models.Student{parents=[]models.Parent}}}
+// @Response     default  {object}  swaglib.Envelope{data=reply.ErrorPayload}
+// @Router       /parents/{id}/students [get]
+func (h *Parent) GetStudentsOfParent(c *gin.Context) {
+	rp := replylib.Client.Use(adapter.AdaptGin(c))
+	var payload payloads.RequestGetStudentsOfParent
+	c.ShouldBindUri(&payload)
+
+	students, errPayload := h.parentService.ApplyContext(c).GetStudentsOfParent(payload)
+	if errPayload != nil {
+		rp.Error(replylib.ErrorPayloadToArgs(errPayload)).FailJSON()
+		return
+	}
+
+	rp.Success(students).OkJSON()
 }

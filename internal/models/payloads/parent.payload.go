@@ -31,3 +31,7 @@ type RequestUpdateParent struct {
 type RequestDeleteParent struct {
 	ID string `uri:"id" validate:"required,uuid4"`
 }
+
+type RequestGetStudentsOfParent struct {
+	ParentID string `uri:"id" validate:"required,uuid4"`
+}
