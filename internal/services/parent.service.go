@@ -2,6 +2,7 @@ package services
 
 import (
 	"context"
+	"school-information-system/config"
 	"school-information-system/internal/libs/errorlib"
 	"school-information-system/internal/libs/phonelib"
 	"school-information-system/internal/libs/replylib"
@@ -12,6 +13,7 @@ import (
 
 	"github.com/chesta132/goreply/reply"
 	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 )
 
 type Parent struct {
@@ -89,4 +91,23 @@ func (s *ContextedParent) GetParent(payload payloads.RequestGetParent) (*models.
 	}
 
 	return &parent, nil
+}
+
+func (s *ContextedParent) GetParents(payload payloads.RequestGetParents) ([]models.Parent, *reply.ErrorPayload) {
+	q := gorm.G[models.Parent](s.parentRepo.DB()).Limit(config.LIMIT_PAGINATED_DATA + 1).Offset(payload.Offset)
+	if payload.Email != "" {
+		q = q.Where("email = ?", payload.Email)
+	}
+	if payload.Gender != "" && (payload.Gender == models.GenderFemale || payload.Gender == models.GenderMale) {
+		q = q.Where("gender = ?", payload.Gender)
+	}
+	if payload.Query != "" {
+		q = q.Where("full_name LIKE ?", "%"+payload.Query+"%")
+	}
+
+	parents, err := q.Find(s.ctx)
+	if err != nil {
+		return nil, errorlib.MakeServerError(err)
+	}
+	return parents, nil
 }

@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"school-information-system/config"
 	"school-information-system/internal/libs/replylib"
 	"school-information-system/internal/models/payloads"
 	"school-information-system/internal/services"
@@ -68,4 +69,33 @@ func (h *Parent) GetParent(c *gin.Context) {
 	}
 
 	rp.Success(parent).OkJSON()
+}
+
+// @Summary      Get existing parents
+// @Description  Admin with permission read parent resource only
+// @Tags         permission
+// @Accept       json
+// @Produce      json
+// @Param				 Cookie   header 		string 	false	"access_token"
+// @Param				 Cookie2  header 		string 	true	"refresh_token"
+// @Param				 payload  query			payloads.RequestGetPermissions	true	"config to accept parents"
+// @Success      200  		{array}  	swaglib.Envelope{data=[]models.Parent,meta=swaglib.Pagination}
+// @Response     default  {object}  swaglib.Envelope{data=reply.ErrorPayload}
+// @Router       /parents [get]
+func (h *Parent) GetParents(c *gin.Context) {
+	rp := replylib.Client.Use(adapter.AdaptGin(c))
+	var payload payloads.RequestGetParents
+	c.ShouldBindQuery(&payload)
+
+	if payload.Offset < 0 {
+		payload.Offset = 0
+	}
+
+	parents, errPayload := h.parentService.ApplyContext(c).GetParents(payload)
+	if errPayload != nil {
+		rp.Error(replylib.ErrorPayloadToArgs(errPayload)).FailJSON()
+		return
+	}
+
+	rp.Success(parents).PaginateCursor(config.LIMIT_PAGINATED_DATA, payload.Offset).OkJSON()
 }

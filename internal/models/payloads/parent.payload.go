@@ -12,3 +12,10 @@ type RequestCreateParent struct {
 type RequestGetParent struct {
 	ID string `uri:"id" validate:"required,uuid4"`
 }
+
+type RequestGetParents struct {
+	Offset int               `form:"offset"`
+	Query  string            `form:"q"`
+	Gender models.UserGender `form:"gender"`
+	Email  string            `form:"email"`
+}
