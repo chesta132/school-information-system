@@ -2,6 +2,7 @@ package services
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"school-information-system/config"
 	"school-information-system/internal/libs/errorlib"
@@ -168,4 +169,45 @@ func (s *ContextedParent) UpdateParent(payload payloads.RequestUpdateParent) (*m
 	}
 
 	return &parent, nil
+}
+
+func (s *ContextedParent) DeleteParent(payload payloads.RequestDeleteParent) (errPayload *reply.ErrorPayload) {
+	// validate payload
+	if errPayload := validatorlib.ValidateStructToReply(payload); errPayload != nil {
+		return errPayload
+	}
+
+	s.parentRepo.DB().Transaction(func(tx *gorm.DB) error {
+		parentRepo := s.parentRepo.WithTx(tx)
+
+		// validate if there is another student related to this parent
+		var related bool
+		err := tx.Raw("SELECT EXISTS (SELECT 1 FROM student_parents WHERE parent_id = ? LIMIT 1)", payload.ID).Scan(&related).Error
+		if err != nil {
+			errPayload = errorlib.MakeServerError(err)
+			return err
+		}
+		if related {
+			errPayload = &reply.ErrorPayload{
+				Code:    replylib.CodeConflict,
+				Message: "parent still registered by other student(s)",
+			}
+			return errors.New("can't delete related parent")
+		}
+
+		// delete parent
+		ok, err := parentRepo.DeleteByID(s.ctx, payload.ID)
+		if err != nil {
+			errPayload = errorlib.MakeServerError(err)
+			return err
+		}
+		if !ok {
+			errPayload = errorlib.MakeNotFound(gorm.ErrRecordNotFound, "parent not found", nil)
+			return gorm.ErrRecordNotFound
+		}
+
+		return nil
+	})
+
+	return
 }

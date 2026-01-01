@@ -27,3 +27,7 @@ type RequestUpdateParent struct {
 	Email    string            `json:"email" validate:"omitempty,email" example:"chestaardi4@gmail.com"`
 	Gender   models.UserGender `json:"gender" validate:"omitempty,user_gender"`
 }
+
+type RequestDeleteParent struct {
+	ID string `uri:"id" validate:"required,uuid4"`
+}

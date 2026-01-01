@@ -3,6 +3,7 @@ package handlers
 import (
 	"school-information-system/config"
 	"school-information-system/internal/libs/replylib"
+	"school-information-system/internal/models"
 	"school-information-system/internal/models/payloads"
 	"school-information-system/internal/services"
 
@@ -128,4 +129,32 @@ func (h *Parent) UpdateParent(c *gin.Context) {
 	}
 
 	rp.Success(parent).OkJSON()
+}
+
+// @Summary      Delete existing parent
+// @Description  Admin with permission delete parent resource only
+// @Tags         parent
+// @Accept       json
+// @Produce      json
+// @Param				 Cookie   header 		string 	false	"access_token"
+// @Param				 Cookie2  header 		string 	true	"refresh_token"
+// @Param 			 id				path 			string  true  "parent id"
+// @Success      200  		{object}  swaglib.Envelope{data=models.Id}
+// @Response     default  {object}  swaglib.Envelope{data=reply.ErrorPayload}
+// @Router       /parents/{id} [delete]
+func (h *Parent) DeleteParent(c *gin.Context) {
+	rp := replylib.Client.Use(adapter.AdaptGin(c))
+	var payload payloads.RequestDeleteParent
+	if err := c.ShouldBindUri(&payload); err != nil {
+		rp.Error(replylib.CodeBadRequest, err.Error()).FailJSON()
+		return
+	}
+
+	errPayload := h.parentService.ApplyContext(c).DeleteParent(payload)
+	if errPayload != nil {
+		rp.Error(replylib.ErrorPayloadToArgs(errPayload)).FailJSON()
+		return
+	}
+
+	rp.Success(models.Id{ID: payload.ID}).OkJSON()
 }

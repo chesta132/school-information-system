@@ -34,4 +34,9 @@ func (rt *Route) RegisterParent(group *gin.RouterGroup) {
 		models.ResourceParent,
 		[]models.PermissionAction{models.ActionUpdate},
 	), handler.UpdateParent)
+
+	group.DELETE("/:id", mw.PermissionProtected(
+		models.ResourceParent,
+		[]models.PermissionAction{models.ActionDelete},
+	), handler.DeleteParent)
 }
