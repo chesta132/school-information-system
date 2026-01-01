@@ -124,6 +124,7 @@ definitions:
     - admin
     - teacher
     - student
+    - parent
     - subject
     - class
     type: string
@@ -133,6 +134,7 @@ definitions:
     - ResourceAdmin
     - ResourceTeacher
     - ResourceStudent
+    - ResourceParent
     - ResourceSubject
     - ResourceClass
   models.Student:
@@ -246,9 +248,6 @@ definitions:
         example: 3
         minimum: 1
         type: integer
-      form_teacher_id:
-        example: 479b5b5f-81b1-4669-91a5-b5bf69e597c6
-        type: string
       grade:
         example: 10
         maximum: 12
@@ -259,9 +258,27 @@ definitions:
         type: string
     required:
     - class_number
-    - form_teacher_id
     - grade
     - major
+    type: object
+  payloads.RequestCreateParent:
+    properties:
+      email:
+        example: chestaardi4@gmail.com
+        type: string
+      full_name:
+        example: Chesta Ardiona
+        type: string
+      gender:
+        $ref: '#/definitions/models.UserGender'
+      phone:
+        example: "+6281234567890"
+        type: string
+    required:
+    - email
+    - full_name
+    - gender
+    - phone
     type: object
   payloads.RequestCreatePermission:
     properties:
@@ -424,7 +441,6 @@ definitions:
         - 479b5b5f-81b1-4669-91a5-b5bf69e597c7
         items:
           type: string
-        maxItems: 1
         minItems: 1
         type: array
     required:
@@ -472,6 +488,24 @@ definitions:
     - gender
     - password
     - phone
+    type: object
+  payloads.RequestUpdateParent:
+    properties:
+      email:
+        example: chestaardi4@gmail.com
+        type: string
+      full_name:
+        example: Chesta Ardiona
+        type: string
+      gender:
+        $ref: '#/definitions/models.UserGender'
+      id:
+        type: string
+      phone:
+        example: "+6281234567890"
+        type: string
+    required:
+    - id
     type: object
   payloads.RequestUpdatePermission:
     properties:
@@ -1037,10 +1071,10 @@ paths:
       tags:
       - class
   /classes/{id}/form-teacher:
-    get:
+    delete:
       consumes:
       - application/json
-      description: Admin with permission read class and teacher resource only
+      description: Admin with permission update class and teacher resource only
       parameters:
       - description: access_token
         in: header
@@ -1049,6 +1083,11 @@ paths:
       - description: refresh_token
         in: header
         name: Cookie2
+        required: true
+        type: string
+      - description: class id
+        in: path
+        name: id
         required: true
         type: string
       produces:
@@ -1072,7 +1111,93 @@ paths:
                 data:
                   $ref: '#/definitions/reply.ErrorPayload'
               type: object
-      summary: Get form teacher of class
+      summary: Remove form teacher of class
+      tags:
+      - class
+    get:
+      consumes:
+      - application/json
+      description: Admin with permission read class and teacher resource only
+      parameters:
+      - description: access_token
+        in: header
+        name: Cookie
+        type: string
+      - description: refresh_token
+        in: header
+        name: Cookie2
+        required: true
+        type: string
+      - description: class id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/swaglib.Envelope'
+            - properties:
+                data:
+                  $ref: '#/definitions/models.User'
+              type: object
+        default:
+          description: ""
+          schema:
+            allOf:
+            - $ref: '#/definitions/swaglib.Envelope'
+            - properties:
+                data:
+                  $ref: '#/definitions/reply.ErrorPayload'
+              type: object
+      summary: Get form teacher in class
+      tags:
+      - class
+    put:
+      consumes:
+      - application/json
+      description: Admin with permission update class and teacher resource only
+      parameters:
+      - description: access_token
+        in: header
+        name: Cookie
+        type: string
+      - description: refresh_token
+        in: header
+        name: Cookie2
+        required: true
+        type: string
+      - description: class id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/swaglib.Envelope'
+            - properties:
+                data:
+                  $ref: '#/definitions/models.User'
+              type: object
+        default:
+          description: ""
+          schema:
+            allOf:
+            - $ref: '#/definitions/swaglib.Envelope'
+            - properties:
+                data:
+                  $ref: '#/definitions/reply.ErrorPayload'
+              type: object
+      summary: Set form teacher of class
       tags:
       - class
   /classes/{id}/full:
@@ -1120,6 +1245,97 @@ paths:
       summary: Get form teacher of class
       tags:
       - class
+  /classes/{id}/students:
+    get:
+      consumes:
+      - application/json
+      description: Admin with permission read class and student resource only
+      parameters:
+      - description: access_token
+        in: header
+        name: Cookie
+        type: string
+      - description: refresh_token
+        in: header
+        name: Cookie2
+        required: true
+        type: string
+      - description: class id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/swaglib.Envelope'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/models.User'
+                  type: array
+              type: object
+        default:
+          description: ""
+          schema:
+            allOf:
+            - $ref: '#/definitions/swaglib.Envelope'
+            - properties:
+                data:
+                  $ref: '#/definitions/reply.ErrorPayload'
+              type: object
+      summary: Get students in class
+      tags:
+      - class
+    post:
+      consumes:
+      - application/json
+      description: Admin with permission update class and student resource only
+      parameters:
+      - description: access_token
+        in: header
+        name: Cookie
+        type: string
+      - description: refresh_token
+        in: header
+        name: Cookie2
+        required: true
+        type: string
+      - description: class id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/swaglib.Envelope'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/models.User'
+                  type: array
+              type: object
+        default:
+          description: ""
+          schema:
+            allOf:
+            - $ref: '#/definitions/swaglib.Envelope'
+            - properties:
+                data:
+                  $ref: '#/definitions/reply.ErrorPayload'
+              type: object
+      summary: Add students in class
+      tags:
+      - class
   /health:
     get:
       consumes:
@@ -1153,6 +1369,325 @@ paths:
       summary: Check server's health
       tags:
       - health
+  /parents:
+    get:
+      consumes:
+      - application/json
+      description: Admin with permission read parent resource only
+      parameters:
+      - description: access_token
+        in: header
+        name: Cookie
+        type: string
+      - description: refresh_token
+        in: header
+        name: Cookie2
+        required: true
+        type: string
+      - collectionFormat: csv
+        in: query
+        items:
+          enum:
+          - create
+          - read
+          - update
+          - delete
+          type: string
+        name: action
+        type: array
+      - example: 10
+        in: query
+        name: offset
+        type: integer
+      - example: rol
+        in: query
+        name: q
+        type: string
+      - collectionFormat: csv
+        in: query
+        items:
+          enum:
+          - role
+          - permission
+          - admin
+          - teacher
+          - student
+          - parent
+          - subject
+          - class
+          type: string
+        name: resource
+        type: array
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              allOf:
+              - $ref: '#/definitions/swaglib.Envelope'
+              - properties:
+                  data:
+                    items:
+                      $ref: '#/definitions/models.Parent'
+                    type: array
+                  meta:
+                    $ref: '#/definitions/swaglib.Pagination'
+                type: object
+            type: array
+        default:
+          description: ""
+          schema:
+            allOf:
+            - $ref: '#/definitions/swaglib.Envelope'
+            - properties:
+                data:
+                  $ref: '#/definitions/reply.ErrorPayload'
+              type: object
+      summary: Get existing parents
+      tags:
+      - permission
+    post:
+      consumes:
+      - application/json
+      description: Admin with permission create parent resource only
+      parameters:
+      - description: access_token
+        in: header
+        name: Cookie
+        type: string
+      - description: refresh_token
+        in: header
+        name: Cookie2
+        required: true
+        type: string
+      - description: data of new parent
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/payloads.RequestCreateParent'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            allOf:
+            - $ref: '#/definitions/swaglib.Envelope'
+            - properties:
+                data:
+                  $ref: '#/definitions/models.Parent'
+                meta:
+                  $ref: '#/definitions/swaglib.Info'
+              type: object
+        default:
+          description: ""
+          schema:
+            allOf:
+            - $ref: '#/definitions/swaglib.Envelope'
+            - properties:
+                data:
+                  $ref: '#/definitions/reply.ErrorPayload'
+              type: object
+      summary: Create new parent profile
+      tags:
+      - parent
+  /parents/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Admin with permission delete parent resource only
+      parameters:
+      - description: access_token
+        in: header
+        name: Cookie
+        type: string
+      - description: refresh_token
+        in: header
+        name: Cookie2
+        required: true
+        type: string
+      - description: parent id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/swaglib.Envelope'
+            - properties:
+                data:
+                  $ref: '#/definitions/models.Id'
+              type: object
+        default:
+          description: ""
+          schema:
+            allOf:
+            - $ref: '#/definitions/swaglib.Envelope'
+            - properties:
+                data:
+                  $ref: '#/definitions/reply.ErrorPayload'
+              type: object
+      summary: Delete existing parent
+      tags:
+      - parent
+    get:
+      consumes:
+      - application/json
+      description: Admin with permission read parent resource only
+      parameters:
+      - description: access_token
+        in: header
+        name: Cookie
+        type: string
+      - description: refresh_token
+        in: header
+        name: Cookie2
+        required: true
+        type: string
+      - description: parent id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/swaglib.Envelope'
+            - properties:
+                data:
+                  $ref: '#/definitions/models.Parent'
+              type: object
+        default:
+          description: ""
+          schema:
+            allOf:
+            - $ref: '#/definitions/swaglib.Envelope'
+            - properties:
+                data:
+                  $ref: '#/definitions/reply.ErrorPayload'
+              type: object
+      summary: Get existing parent with id
+      tags:
+      - parent
+    put:
+      consumes:
+      - application/json
+      description: Admin with permission update parent resource only
+      parameters:
+      - description: access_token
+        in: header
+        name: Cookie
+        type: string
+      - description: refresh_token
+        in: header
+        name: Cookie2
+        required: true
+        type: string
+      - description: parent id
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: data to update parent
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/payloads.RequestUpdateParent'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/swaglib.Envelope'
+            - properties:
+                data:
+                  $ref: '#/definitions/models.Parent'
+              type: object
+        default:
+          description: ""
+          schema:
+            allOf:
+            - $ref: '#/definitions/swaglib.Envelope'
+            - properties:
+                data:
+                  $ref: '#/definitions/reply.ErrorPayload'
+              type: object
+      summary: Update existing parent
+      tags:
+      - parent
+  /parents/{id}/students:
+    get:
+      consumes:
+      - application/json
+      description: Admin with permission read parent and student resource only
+      parameters:
+      - description: access_token
+        in: header
+        name: Cookie
+        type: string
+      - description: refresh_token
+        in: header
+        name: Cookie2
+        required: true
+        type: string
+      - description: parent id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/swaglib.Envelope'
+            - properties:
+                data:
+                  items:
+                    allOf:
+                    - $ref: '#/definitions/models.User'
+                    - properties:
+                        student_profile:
+                          allOf:
+                          - $ref: '#/definitions/models.Student'
+                          - properties:
+                              parents:
+                                items:
+                                  $ref: '#/definitions/models.Parent'
+                                type: array
+                            type: object
+                      type: object
+                  type: array
+              type: object
+        default:
+          description: ""
+          schema:
+            allOf:
+            - $ref: '#/definitions/swaglib.Envelope'
+            - properties:
+                data:
+                  $ref: '#/definitions/reply.ErrorPayload'
+              type: object
+      summary: Get students of parent with parent id
+      tags:
+      - parent
   /permissions:
     get:
       consumes:
@@ -1196,6 +1731,7 @@ paths:
           - admin
           - teacher
           - student
+          - parent
           - subject
           - class
           type: string
