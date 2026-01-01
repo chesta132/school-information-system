@@ -99,3 +99,33 @@ func (h *Parent) GetParents(c *gin.Context) {
 
 	rp.Success(parents).PaginateCursor(config.LIMIT_PAGINATED_DATA, payload.Offset).OkJSON()
 }
+
+// @Summary      Update existing parent
+// @Description  Admin with permission update parent resource only
+// @Tags         parent
+// @Accept       json
+// @Produce      json
+// @Param				 Cookie   header 		string 	false	"access_token"
+// @Param				 Cookie2  header 		string 	true	"refresh_token"
+// @Param 			 id				path 			string  true  "parent id"
+// @Param				 payload  body			payloads.RequestUpdateParent	true	"data to update parent"
+// @Success      200  		{object}  swaglib.Envelope{data=models.Parent}
+// @Response     default  {object}  swaglib.Envelope{data=reply.ErrorPayload}
+// @Router       /parents/{id} [put]
+func (h *Parent) UpdateParent(c *gin.Context) {
+	rp := replylib.Client.Use(adapter.AdaptGin(c))
+	var payload payloads.RequestUpdateParent
+	if err := c.ShouldBindJSON(&payload); err != nil {
+		rp.Error(replylib.CodeBadRequest, err.Error()).FailJSON()
+		return
+	}
+	payload.ID = c.Param("id")
+
+	parent, errPayload := h.parentService.ApplyContext(c).UpdateParent(payload)
+	if errPayload != nil {
+		rp.Error(replylib.ErrorPayloadToArgs(errPayload)).FailJSON()
+		return
+	}
+
+	rp.Success(parent).OkJSON()
+}

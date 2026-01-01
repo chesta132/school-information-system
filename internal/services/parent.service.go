@@ -2,6 +2,7 @@ package services
 
 import (
 	"context"
+	"fmt"
 	"school-information-system/config"
 	"school-information-system/internal/libs/errorlib"
 	"school-information-system/internal/libs/phonelib"
@@ -10,6 +11,7 @@ import (
 	"school-information-system/internal/models"
 	"school-information-system/internal/models/payloads"
 	"school-information-system/internal/repos"
+	"strings"
 
 	"github.com/chesta132/goreply/reply"
 	"github.com/gin-gonic/gin"
@@ -110,4 +112,60 @@ func (s *ContextedParent) GetParents(payload payloads.RequestGetParents) ([]mode
 		return nil, errorlib.MakeServerError(err)
 	}
 	return parents, nil
+}
+
+func (s *ContextedParent) UpdateParent(payload payloads.RequestUpdateParent) (*models.Parent, *reply.ErrorPayload) {
+	// validate payload
+	if errPayload := validatorlib.ValidateStructToReply(payload); errPayload != nil {
+		return nil, errPayload
+	}
+
+	// format and validate phone number
+	var formattedNumber string
+	if payload.Phone != "" {
+		var validNum bool
+		formattedNumber, validNum = phonelib.FormatNumber(payload.Phone)
+		if !validNum {
+			return nil, &replylib.ErrInvalidPhone
+		}
+	}
+
+	if formattedNumber != "" || payload.Email != "" {
+		// build query for validate
+		query := make([]string, 0, 2)
+		args := []any{payload.ID}
+		if formattedNumber != "" {
+			query = append(query, "phone = ?")
+			args = append(args, formattedNumber)
+		}
+		if payload.Email != "" {
+			query = append(query, "email = ?")
+			args = append(args, payload.Email)
+		}
+
+		// validate phone number and email
+		built := fmt.Sprintf("id != ? AND (%s)", strings.Join(query, " OR "))
+		exists, err := s.parentRepo.Exists(s.ctx, built, args...)
+		if err != nil {
+			return nil, errorlib.MakeServerError(err)
+		}
+		if exists {
+			return nil, errorlib.MakeUpdateParentErr(formattedNumber, payload.Email)
+		}
+	}
+
+	// update parent, it's ok for let all value enters because gorm auto ignore zero value
+	parent := models.Parent{
+		FullName: payload.FullName,
+		Phone:    formattedNumber,
+		Email:    payload.Email,
+		Gender:   payload.Gender,
+	}
+
+	parent, err := s.parentRepo.UpdateByIDAndGet(s.ctx, payload.ID, parent)
+	if err != nil {
+		return nil, errorlib.MakeServerError(err)
+	}
+
+	return &parent, nil
 }

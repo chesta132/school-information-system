@@ -19,3 +19,11 @@ type RequestGetParents struct {
 	Gender models.UserGender `form:"gender"`
 	Email  string            `form:"email"`
 }
+
+type RequestUpdateParent struct {
+	ID       string            `uri:"id" validate:"required,uuid4"`
+	FullName string            `json:"full_name" example:"Chesta Ardiona"`
+	Phone    string            `json:"phone" example:"+6281234567890"`
+	Email    string            `json:"email" validate:"omitempty,email" example:"chestaardi4@gmail.com"`
+	Gender   models.UserGender `json:"gender" validate:"omitempty,user_gender"`
+}
