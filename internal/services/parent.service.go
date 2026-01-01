@@ -21,7 +21,6 @@ import (
 
 type Parent struct {
 	parentRepo *repos.Parent
-	userRepo   *repos.User
 }
 
 type ContextedParent struct {
@@ -30,8 +29,8 @@ type ContextedParent struct {
 	ctx context.Context
 }
 
-func NewParent(parentRepo *repos.Parent, userRepo *repos.User) *Parent {
-	return &Parent{parentRepo, userRepo}
+func NewParent(parentRepo *repos.Parent) *Parent {
+	return &Parent{parentRepo}
 }
 
 func (s *Parent) ApplyContext(c *gin.Context) *ContextedParent {
