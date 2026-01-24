@@ -77,7 +77,7 @@ func (s *ContextedStudent) UpdateStudent(payload payloads.RequestUpdateStudent) 
 				errPayload = &reply.ErrorPayload{Code: replylib.CodeNotFound, Message: "parent(s) not found"}
 				return gorm.ErrRecordNotFound
 			}
-			err = tx.Model(student).Association("Parents").Replace(parents)
+			err = tx.Model(student).Where("id = ?", payload.ID).Association("Parents").Replace(parents)
 			if err != nil {
 				errPayload = errorlib.MakeServerError(err)
 				return err
