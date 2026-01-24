@@ -242,6 +242,19 @@ definitions:
     - RoleTeacher
     - RoleAdmin
     - RoleUnsetted
+  payloads.RequestAddStudents:
+    properties:
+      id:
+        type: string
+      student_ids:
+        items:
+          type: string
+        minItems: 1
+        type: array
+    required:
+    - id
+    - student_ids
+    type: object
   payloads.RequestCreateClass:
     properties:
       class_number:
@@ -362,6 +375,16 @@ definitions:
     required:
     - permission_id
     - target_id
+    type: object
+  payloads.RequestSetFormTeacher:
+    properties:
+      id:
+        type: string
+      teacher_id:
+        type: string
+    required:
+    - id
+    - teacher_id
     type: object
   payloads.RequestSetRole:
     properties:
@@ -489,6 +512,21 @@ definitions:
     - password
     - phone
     type: object
+  payloads.RequestUpdateClass:
+    properties:
+      class_number:
+        example: 3
+        minimum: 1
+        type: integer
+      grade:
+        example: 10
+        maximum: 12
+        minimum: 1
+        type: integer
+      major:
+        example: TJKT
+        type: string
+    type: object
   payloads.RequestUpdateParent:
     properties:
       email:
@@ -520,6 +558,23 @@ definitions:
         example: updated name
         minLength: 10
         type: string
+    required:
+    - id
+    type: object
+  payloads.RequestUpdateStudent:
+    properties:
+      id:
+        type: string
+      nisn:
+        example: "0091913711"
+        type: string
+      parent_ids:
+        description: replace current parents
+        items:
+          type: string
+        maxItems: 2
+        minItems: 2
+        type: array
     required:
     - id
     type: object
@@ -868,6 +923,22 @@ paths:
         name: Cookie2
         required: true
         type: string
+      - example: 3
+        in: query
+        name: class_number
+        type: integer
+      - example: 10
+        in: query
+        name: grade
+        type: integer
+      - example: TJKT
+        in: query
+        name: major
+        type: string
+      - example: 10
+        in: query
+        name: offset
+        type: integer
       produces:
       - application/json
       responses:
@@ -1046,6 +1117,12 @@ paths:
         name: id
         required: true
         type: string
+      - description: data to update class
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/payloads.RequestUpdateClass'
       produces:
       - application/json
       responses:
@@ -1176,6 +1253,12 @@ paths:
         name: id
         required: true
         type: string
+      - description: data to set form teacher
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/payloads.RequestSetFormTeacher'
       produces:
       - application/json
       responses:
@@ -1310,6 +1393,12 @@ paths:
         name: id
         required: true
         type: string
+      - description: data to add students
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/payloads.RequestAddStudents'
       produces:
       - application/json
       responses:
@@ -1384,40 +1473,24 @@ paths:
         name: Cookie2
         required: true
         type: string
-      - collectionFormat: csv
+      - in: query
+        name: email
+        type: string
+      - enum:
+        - male
+        - female
         in: query
-        items:
-          enum:
-          - create
-          - read
-          - update
-          - delete
-          type: string
-        name: action
-        type: array
-      - example: 10
-        in: query
+        name: gender
+        type: string
+        x-enum-varnames:
+        - GenderMale
+        - GenderFemale
+      - in: query
         name: offset
         type: integer
-      - example: rol
-        in: query
+      - in: query
         name: q
         type: string
-      - collectionFormat: csv
-        in: query
-        items:
-          enum:
-          - role
-          - permission
-          - admin
-          - teacher
-          - student
-          - parent
-          - subject
-          - class
-          type: string
-        name: resource
-        type: array
       produces:
       - application/json
       responses:
@@ -1447,7 +1520,7 @@ paths:
               type: object
       summary: Get existing parents
       tags:
-      - permission
+      - parent
     post:
       consumes:
       - application/json
@@ -2071,6 +2144,63 @@ paths:
       summary: Revoke existing permission of another admin
       tags:
       - permission
+  /students/{id}:
+    put:
+      consumes:
+      - application/json
+      description: Admin with permission update student resource only
+      parameters:
+      - description: access_token
+        in: header
+        name: Cookie
+        type: string
+      - description: refresh_token
+        in: header
+        name: Cookie2
+        required: true
+        type: string
+      - description: student id
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: data to update student
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/payloads.RequestUpdateStudent'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/swaglib.Envelope'
+            - properties:
+                data:
+                  allOf:
+                  - $ref: '#/definitions/models.Student'
+                  - properties:
+                      parents:
+                        items:
+                          $ref: '#/definitions/models.Parent'
+                        type: array
+                    type: object
+              type: object
+        default:
+          description: ""
+          schema:
+            allOf:
+            - $ref: '#/definitions/swaglib.Envelope'
+            - properties:
+                data:
+                  $ref: '#/definitions/reply.ErrorPayload'
+              type: object
+      summary: Update existing student profile
+      tags:
+      - student
   /subjects:
     get:
       consumes:

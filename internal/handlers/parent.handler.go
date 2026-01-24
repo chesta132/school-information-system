@@ -74,12 +74,12 @@ func (h *Parent) GetParent(c *gin.Context) {
 
 // @Summary      Get existing parents
 // @Description  Admin with permission read parent resource only
-// @Tags         permission
+// @Tags         parent
 // @Accept       json
 // @Produce      json
 // @Param				 Cookie   header 		string 	false	"access_token"
 // @Param				 Cookie2  header 		string 	true	"refresh_token"
-// @Param				 payload  query			payloads.RequestGetPermissions	true	"config to accept parents"
+// @Param				 payload  query			payloads.RequestGetParents	true	"config to accept parents"
 // @Success      200  		{array}  	swaglib.Envelope{data=[]models.Parent,meta=swaglib.Pagination}
 // @Response     default  {object}  swaglib.Envelope{data=reply.ErrorPayload}
 // @Router       /parents [get]

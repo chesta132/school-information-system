@@ -438,6 +438,30 @@ const docTemplate = `{
                         "name": "Cookie2",
                         "in": "header",
                         "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "example": 3,
+                        "name": "class_number",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "example": 10,
+                        "name": "grade",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "example": "TJKT",
+                        "name": "major",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "example": 10,
+                        "name": "offset",
+                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -667,6 +691,15 @@ const docTemplate = `{
                         "name": "id",
                         "in": "path",
                         "required": true
+                    },
+                    {
+                        "description": "data to update class",
+                        "name": "payload",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/payloads.RequestUpdateClass"
+                        }
                     }
                 ],
                 "responses": {
@@ -888,6 +921,15 @@ const docTemplate = `{
                         "name": "id",
                         "in": "path",
                         "required": true
+                    },
+                    {
+                        "description": "data to set form teacher",
+                        "name": "payload",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/payloads.RequestSetFormTeacher"
+                        }
                     }
                 ],
                 "responses": {
@@ -1187,6 +1229,15 @@ const docTemplate = `{
                         "name": "id",
                         "in": "path",
                         "required": true
+                    },
+                    {
+                        "description": "data to add students",
+                        "name": "payload",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/payloads.RequestAddStudents"
+                        }
                     }
                 ],
                 "responses": {
@@ -1302,7 +1353,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "permission"
+                    "parent"
                 ],
                 "summary": "Get existing parents",
                 "parameters": [
@@ -1320,49 +1371,31 @@ const docTemplate = `{
                         "required": true
                     },
                     {
-                        "type": "array",
-                        "items": {
-                            "enum": [
-                                "create",
-                                "read",
-                                "update",
-                                "delete"
-                            ],
-                            "type": "string"
-                        },
-                        "collectionFormat": "csv",
-                        "name": "action",
+                        "type": "string",
+                        "name": "email",
+                        "in": "query"
+                    },
+                    {
+                        "enum": [
+                            "male",
+                            "female"
+                        ],
+                        "type": "string",
+                        "x-enum-varnames": [
+                            "GenderMale",
+                            "GenderFemale"
+                        ],
+                        "name": "gender",
                         "in": "query"
                     },
                     {
                         "type": "integer",
-                        "example": 10,
                         "name": "offset",
                         "in": "query"
                     },
                     {
                         "type": "string",
-                        "example": "rol",
                         "name": "q",
-                        "in": "query"
-                    },
-                    {
-                        "type": "array",
-                        "items": {
-                            "enum": [
-                                "role",
-                                "permission",
-                                "admin",
-                                "teacher",
-                                "student",
-                                "parent",
-                                "subject",
-                                "class"
-                            ],
-                            "type": "string"
-                        },
-                        "collectionFormat": "csv",
-                        "name": "resource",
                         "in": "query"
                     }
                 ],
@@ -2473,6 +2506,105 @@ const docTemplate = `{
                 }
             }
         },
+        "/students/{id}": {
+            "put": {
+                "description": "Admin with permission update student resource only",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "student"
+                ],
+                "summary": "Update existing student profile",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "access_token",
+                        "name": "Cookie",
+                        "in": "header"
+                    },
+                    {
+                        "type": "string",
+                        "description": "refresh_token",
+                        "name": "Cookie2",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "student id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "data to update student",
+                        "name": "payload",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/payloads.RequestUpdateStudent"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/swaglib.Envelope"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "allOf": [
+                                                {
+                                                    "$ref": "#/definitions/models.Student"
+                                                },
+                                                {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "parents": {
+                                                            "type": "array",
+                                                            "items": {
+                                                                "$ref": "#/definitions/models.Parent"
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            ]
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "default": {
+                        "description": "",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/swaglib.Envelope"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/reply.ErrorPayload"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
         "/subjects": {
             "get": {
                 "description": "Admin with permission read subject resource or teacher only",
@@ -3281,6 +3413,25 @@ const docTemplate = `{
                 "RoleUnsetted"
             ]
         },
+        "payloads.RequestAddStudents": {
+            "type": "object",
+            "required": [
+                "id",
+                "student_ids"
+            ],
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "student_ids": {
+                    "type": "array",
+                    "minItems": 1,
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
         "payloads.RequestCreateClass": {
             "type": "object",
             "required": [
@@ -3446,6 +3597,21 @@ const docTemplate = `{
                 "target_id": {
                     "type": "string",
                     "example": "479b5b5f-81b1-4669-91a5-b5bf69e597c6"
+                }
+            }
+        },
+        "payloads.RequestSetFormTeacher": {
+            "type": "object",
+            "required": [
+                "id",
+                "teacher_id"
+            ],
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "teacher_id": {
+                    "type": "string"
                 }
             }
         },
@@ -3630,6 +3796,26 @@ const docTemplate = `{
                 }
             }
         },
+        "payloads.RequestUpdateClass": {
+            "type": "object",
+            "properties": {
+                "class_number": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "example": 3
+                },
+                "grade": {
+                    "type": "integer",
+                    "maximum": 12,
+                    "minimum": 1,
+                    "example": 10
+                },
+                "major": {
+                    "type": "string",
+                    "example": "TJKT"
+                }
+            }
+        },
         "payloads.RequestUpdateParent": {
             "type": "object",
             "required": [
@@ -3675,6 +3861,30 @@ const docTemplate = `{
                     "type": "string",
                     "minLength": 10,
                     "example": "updated name"
+                }
+            }
+        },
+        "payloads.RequestUpdateStudent": {
+            "type": "object",
+            "required": [
+                "id"
+            ],
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "nisn": {
+                    "type": "string",
+                    "example": "0091913711"
+                },
+                "parent_ids": {
+                    "description": "replace current parents",
+                    "type": "array",
+                    "maxItems": 2,
+                    "minItems": 2,
+                    "items": {
+                        "type": "string"
+                    }
                 }
             }
         },

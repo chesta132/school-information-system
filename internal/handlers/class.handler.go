@@ -79,6 +79,7 @@ func (h *Class) GetClass(c *gin.Context) {
 // @Produce      json
 // @Param				 Cookie   header 		string 	false	"access_token"
 // @Param				 Cookie2  header 		string 	true	"refresh_token"
+// @Param				 payload  query			payloads.RequestGetClasses	true	"config to accept classes"
 // @Success      200  		{object}  swaglib.Envelope{data=[]models.Class}
 // @Response     default  {object}  swaglib.Envelope{data=reply.ErrorPayload}
 // @Router       /classes [get]
@@ -108,6 +109,7 @@ func (h *Class) GetClasses(c *gin.Context) {
 // @Param				 Cookie   header 		string 	false	"access_token"
 // @Param				 Cookie2  header 		string 	true	"refresh_token"
 // @Param 			 id				path 			string  true  "class id"
+// @Param				 payload  body 			payloads.RequestUpdateClass	true	"data to update class"
 // @Success      200  		{object}  swaglib.Envelope{data=models.Class}
 // @Response     default  {object}  swaglib.Envelope{data=reply.ErrorPayload}
 // @Router       /classes/{id} [put]
@@ -210,7 +212,7 @@ func (h *Class) GetStudents(c *gin.Context) {
 	rp.Success(students).OkJSON()
 }
 
-// @Summary      Get form teacher of class
+// @Summary      Get class, form teacher, and students
 // @Description  Admin with permission read class, teacher, and student resource only
 // @Tags         class
 // @Accept       json
@@ -243,6 +245,7 @@ func (h *Class) GetFull(c *gin.Context) {
 // @Param				 Cookie   header 		string 	false	"access_token"
 // @Param				 Cookie2  header 		string 	true	"refresh_token"
 // @Param 			 id				path 			string  true  "class id"
+// @Param				 payload  body 			payloads.RequestSetFormTeacher	true	"data to set form teacher"
 // @Success      200  		{object}  swaglib.Envelope{data=models.User}
 // @Response     default  {object}  swaglib.Envelope{data=reply.ErrorPayload}
 // @Router       /classes/{id}/form-teacher [put]
@@ -272,6 +275,7 @@ func (h *Class) SetFormTeacher(c *gin.Context) {
 // @Param				 Cookie   header 		string 	false	"access_token"
 // @Param				 Cookie2  header 		string 	true	"refresh_token"
 // @Param 			 id				path 			string  true  "class id"
+// @Param				 payload  body 			payloads.RequestAddStudents	true	"data to add students"
 // @Success      200  		{object}  swaglib.Envelope{data=[]models.User}
 // @Response     default  {object}  swaglib.Envelope{data=reply.ErrorPayload}
 // @Router       /classes/{id}/students [post]

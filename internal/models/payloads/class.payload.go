@@ -3,9 +3,9 @@ package payloads
 import "school-information-system/internal/models"
 
 type RequestCreateClass struct {
-	Grade         int    `json:"grade" validate:"required,min=1,max=12" example:"10"`
-	Major         string `json:"major" validate:"required" example:"TJKT"`
-	ClassNumber   int    `json:"class_number" validate:"required,min=1" example:"3"`
+	Grade       int    `json:"grade" validate:"required,min=1,max=12" example:"10"`
+	Major       string `json:"major" validate:"required" example:"TJKT"`
+	ClassNumber int    `json:"class_number" validate:"required,min=1" example:"3"`
 }
 
 type RequestGetClass struct {
@@ -31,7 +31,7 @@ type RequestDeleteClass struct {
 }
 
 type ResponseGetFullClass struct {
-	FormTeacher *models.User  `json:"form_teacher"`
+	FormTeacher *models.User  `json:"form_teacher"` // nullable
 	Class       *models.Class `json:"class"`
 	Students    []models.User `json:"students"`
 }

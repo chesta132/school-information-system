@@ -24,9 +24,9 @@ func NewStudent(studentService *services.Student) *Student {
 // @Produce      json
 // @Param				 Cookie   header 		string 	false	"access_token"
 // @Param				 Cookie2  header 		string 	true	"refresh_token"
-// @Param 			 id				path 			string  true  "permission id"
+// @Param 			 id				path 			string  true  "student id"
 // @Param				 payload  body			payloads.RequestUpdateStudent	true	"data to update student"
-// @Success      200  		{object}  swaglib.Envelope{data=models.Student{parents=[]models.parents}}
+// @Success      200  		{object}  swaglib.Envelope{data=models.Student{parents=[]models.Parent}}
 // @Response     default  {object}  swaglib.Envelope{data=reply.ErrorPayload}
 // @Router       /students/{id} [put]
 func (h *Student) UpdateStudent(c *gin.Context) {
